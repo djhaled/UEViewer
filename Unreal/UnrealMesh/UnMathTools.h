@@ -149,7 +149,6 @@ struct CVertexShare
 			if (Normals[PointIndex] == Normal && ExtraInfos[PointIndex] == ExtraInfo) break;
 		}
 #endif // USE_HASHING
-		if (PointIndex == INDEX_NONE)
 		{
 			// point was not found - create it
 			PointIndex = Points.Add(Pos);
