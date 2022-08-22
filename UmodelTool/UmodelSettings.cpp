@@ -103,6 +103,7 @@ void CStartupSettings::Reset()
 	UseVertMesh = true;
 	UseTexture = true;
 	UseMorphTarget = true;
+	UseBlueprint = true;
 	UseLightmapTexture = true;
 
 	UseSound = false;

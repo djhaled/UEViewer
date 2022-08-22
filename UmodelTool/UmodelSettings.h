@@ -18,6 +18,7 @@ struct CStartupSettings
 	bool			UseTexture;
 	bool			UseMorphTarget;
 	bool			UseLightmapTexture;
+	bool			UseBlueprint;
 	bool			UseSound;
 	bool			UseScaleForm;
 	bool			UseFaceFx;
@@ -36,6 +37,7 @@ struct CStartupSettings
 		PROP_BOOL(UseTexture)
 		PROP_BOOL(UseMorphTarget)
 		PROP_BOOL(UseLightmapTexture)
+		PROP_BOOL(UseBlueprint)
 		PROP_BOOL(UseSound)
 		PROP_BOOL(UseScaleForm)
 		PROP_BOOL(UseFaceFx)
