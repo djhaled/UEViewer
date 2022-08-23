@@ -38,7 +38,8 @@
 #include "MiscStrings.h"
 
 #define APP_CAPTION					"UE Viewer"
-
+#define LSIZ 128 
+#define RSIZ 10 
 //#define SHOW_HIDDEN_SWITCHES		1
 //#define DUMP_MEM_ON_EXIT			1
 
@@ -956,25 +957,25 @@ int main(int argc, const char **argv)
 		}
 		else if (!strnicmp(opt, "filelist=", 8))  
 		{
+			int i = 0;
+			int tot = 0;
 		    auto value = opt+8;
 	        const char* KeyFile = value + 1;
+	        char line[RSIZ][LSIZ];
 	        FILE* f = fopen(KeyFile, "r");
-	        if (f)
+	        while(fgets(line[i],LSIZ,f))
 	        {
-		        char buffer[1024];
-		        int saka = -1;
-		        while (!feof(f))
-		        {
-			        if (fgets(buffer, ARRAY_COUNT(buffer), f))
-			        {
-			     	    saka++;
-			     	    FStaticString<256> Key = buffer;
-			     	    Key.TrimStartAndEndInline();
-				        packagesToLoad.Add(*Key);
-				        appPrintf("LogUmodelPackages: %s\n", packagesToLoad[saka]);
-			        }
-		        }
+	        	line[i][strlen(line[i]) - 1] = '\0';
+	        	i++;
 	        }
+	        tot = i;
+	        for(i = 0; i < tot; ++i)
+	        {
+	        	appPrintf("LOG: Package: %s\n", line[i]);
+	        	packagesToLoad.Add(line[i]);
+	        }
+	        printf("\n");
+
 		}
 		else if (!strnicmp(opt, "obj=", 4))
 		{

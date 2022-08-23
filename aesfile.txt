@@ -1,2 +1,4 @@
 SM_Canyon_Reactor_Debris_D
 SM_Canyon_Reactor_Debris_E
+ARubble_0_BrokenTilesB
+Cloth_0_HangingE
