@@ -370,7 +370,7 @@ static void CollectProps(const CTypeInfo *Type, const void *Data, CPropDump &Dum
 			// formatting of property start
 			if (IsArray)
 			{
-				PD->PrintName("[%d]", PropCount);
+				//PD->PrintName("[%d]", PropCount);
 				if (!PropCount)
 				{
 					PD->PrintValue("{}");
@@ -457,7 +457,14 @@ static void PrintIndent(FArchive& Ar, int Value)
 	for (int i = 0; i < Value; i++)
 		Ar.Printf("    ");
 }
-
+static void PrintJsonStart(FArchive& Ar, int Value)
+{
+	Ar.Printf("{\n");
+}
+static void PrintJsonEnd(FArchive& Ar, int Value)
+{
+	Ar.Printf("}");
+}
 static void PrintProps(const CPropDump &Dump, FArchive& Ar, int Indent, bool TopLevel, int MaxLineWidth = 80)
 {
 	PrintIndent(Ar, Indent);
@@ -469,7 +476,7 @@ static void PrintProps(const CPropDump &Dump, FArchive& Ar, int Indent, bool Top
 		bool bNamePrinted = false;
 		if (!Dump.Name.IsEmpty())
 		{
-			Ar.Printf("%s =", *Dump.Name);	// root CPropDump will not have a name
+			Ar.Printf("\"%s\":", *Dump.Name);	// root CPropDump will not have a name
 			bNamePrinted = true;
 		}
 
@@ -515,9 +522,9 @@ static void PrintProps(const CPropDump &Dump, FArchive& Ar, int Indent, bool Top
 				if (Prop.bIsArrayItem)
 					Ar.Printf("%s", *Prop.Value);
 				else
-					Ar.Printf("%s=%s", *Prop.Name, *Prop.Value);
+					Ar.Printf("\"%s\":\"%s\"", *Prop.Name, *Prop.Value);
 			}
-			Ar.Printf(" }\n");
+			Ar.Printf(" },\n");
 		}
 		else
 		{
@@ -532,20 +539,21 @@ static void PrintProps(const CPropDump &Dump, FArchive& Ar, int Indent, bool Top
 			for (const CPropDump &Prop : Dump.Nested)
 			{
 				if (Prop.bDiscard) continue;
+
 				PrintProps(Prop, Ar, Indent+1, false, MaxLineWidth);
 			}
 
 			if (!TopLevel)
 			{
 				PrintIndent(Ar, Indent);
-				Ar.Printf("}\n");
+				Ar.Printf("},\n");
 			}
 		}
 	}
 	else
 	{
 		// single property
-		if (!Dump.Name.IsEmpty()) Ar.Printf("%s = %s\n", *Dump.Name, *Dump.Value);
+		if (!Dump.Name.IsEmpty()) Ar.Printf("\"%s\": \"%s\",\n", *Dump.Name, *Dump.Value);
 	}
 }
 
@@ -645,8 +653,9 @@ void CTypeInfo::SaveProps(const void *Data, FArchive& Ar) const
 	CollectProps(this, Data, Dump);
 
 	// Note: using indent -1 for better in-file formatting
+	PrintJsonStart(Ar,0);
 	PrintProps(Dump, Ar, -1, true, MAX_DUMP_LINE);
-
+	PrintJsonEnd(Ar,0);
 	unguard;
 }
 

@@ -39,7 +39,7 @@
 
 #define APP_CAPTION					"UE Viewer"
 #define LSIZ 128 
-#define RSIZ 10 
+#define RSIZ 2048
 //#define SHOW_HIDDEN_SWITCHES		1
 //#define DUMP_MEM_ON_EXIT			1
 
@@ -955,28 +955,23 @@ int main(int argc, const char **argv)
 			const char *pkg = opt+4;
 			packagesToLoad.Add(pkg);
 		}
-		else if (!strnicmp(opt, "filelist=", 8))  
-		{
-			int i = 0;
-			int tot = 0;
-		    auto value = opt+8;
-	        const char* KeyFile = value + 1;
-	        char line[RSIZ][LSIZ];
-	        FILE* f = fopen(KeyFile, "r");
-	        while(fgets(line[i],LSIZ,f))
-	        {
-	        	line[i][strlen(line[i]) - 1] = '\0';
-	        	i++;
-	        }
-	        tot = i;
-	        for(i = 0; i < tot; ++i)
-	        {
-	        	appPrintf("LOG: Package: %s\n", line[i]);
-	        	packagesToLoad.Add(line[i]);
-	        }
-	        printf("\n");
-
-		}
+        else if (!strnicmp(opt, "files=", 6))
+        {
+            const char* KeyFile = opt + 6;
+            FILE* file = fopen(KeyFile, "r");
+            if (file)
+            {
+                char buffer[256];
+                while (!feof(file))
+                {
+                    if (fgets(buffer, ARRAY_COUNT(buffer), file))
+                    {
+                        if (strstr(buffer, "\n")) packagesToLoad.Add(strtok(strdup(buffer), "\n"));
+                        else packagesToLoad.Add(strdup(buffer));
+                    }
+                }
+            }
+        }
 		else if (!strnicmp(opt, "obj=", 4))
 		{
 			const char *obj = opt+4;
