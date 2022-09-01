@@ -31,7 +31,6 @@
 
 #include "GameDatabase.h"
 #include "UnrealPackage/PackageUtils.h"
-
 #include "UmodelApp.h"
 #include "UmodelCommands.h"
 #include "Version.h"
