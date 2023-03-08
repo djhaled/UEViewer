@@ -2,7 +2,7 @@
 #define __SKELETAL_MESH_H__
 
 #include "MeshCommon.h"
-
+#include "UnrealMesh/UnMesh4.h"
 //todo: should go away
 #define BAKE_BONE_SCALES 1
 
@@ -274,7 +274,10 @@ struct CSkeletonBonePosition
 {
 	CVec3 Position;
 	CQuat Orientation;
+
+
 };
+
 
 class CAnimSequence
 {
@@ -336,12 +339,13 @@ class CAnimSet
 {
 public:
 	const UObject*			OriginalAnim;			//?? make common for all mesh classes
-	TArray<FName>			TrackBoneNames;
-	TArray<CSkeletonBonePosition> BonePositions;	// may be empty (for pre-UE4), position in array matches TrackBoneNames
+	TArray<FMeshBoneInfo> TrackBonesInfo;
+	TArray<FTransform> BonePositions;
+	//TArray<FName>			TrackBoneNames;
+	//TArray<CSkeletonBonePosition> BonePositions;	// may be empty (for pre-UE4), position in array matches TrackBoneNames
+	TArray<EBoneTranslationRetargetingMode> BoneModes;
 	TArray<CAnimSequence*>	Sequences;
-
-	TArray<EBoneRetargetingMode> BoneModes;
-
+	int BonesCount() const { return TrackBonesInfo.Num(); }
 	CAnimSet()
 	{}
 
@@ -353,7 +357,8 @@ public:
 	void CopyAllButSequences(const CAnimSet& Other)
 	{
 		OriginalAnim = Other.OriginalAnim;
-		CopyArray(TrackBoneNames, Other.TrackBoneNames);
+		CopyArray(TrackBonesInfo, Other.TrackBonesInfo);
+		CopyArray(BonePositions, Other.BonePositions);
 		CopyArray(BoneModes, Other.BoneModes);
 	}
 
@@ -362,13 +367,12 @@ public:
 		for (int i = 0; i < Sequences.Num(); i++)
 			delete Sequences[i];
 	}
-
-	EBoneRetargetingMode GetBoneTranslationMode(int BoneIndex, EAnimRetargetingMode RetargetingMode = EAnimRetargetingMode::AnimSet) const
+	EBoneTranslationRetargetingMode GetBoneTranslationMode(int BoneIndex, EAnimRetargetingMode  RetargetingMode = EAnimRetargetingMode::AnimSet) const
 	{
 		if (BoneIndex == 0)
 		{
 			// Root bone is always fully animated
-			return EBoneRetargetingMode::Animation;
+			return EBoneTranslationRetargetingMode::Animation;
 		}
 #if 0
 		// OLD code, returns just true for animated translation and false for non-animated
@@ -387,16 +391,16 @@ public:
 #else
 		// Global override
 		if (RetargetingMode == EAnimRetargetingMode::AnimRotationOnly)
-			return EBoneRetargetingMode::Mesh;
+			return EBoneTranslationRetargetingMode::Skeleton;
 		else if (RetargetingMode == EAnimRetargetingMode::NoRetargeting)
-			return EBoneRetargetingMode::Animation;
+			return EBoneTranslationRetargetingMode::Animation;
 
 		// Per-bone settings
 		if (BoneModes.IsValidIndex(BoneIndex))
 		{
 			return BoneModes[BoneIndex];
 		}
-		return EBoneRetargetingMode::Animation;
+		return EBoneTranslationRetargetingMode::Animation;
 #endif
 	}
 };

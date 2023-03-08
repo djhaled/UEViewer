@@ -620,6 +620,92 @@ static void FixRotationKeys(CAnimSequence* Anim)
 		}
 	}
 }
+CAnimSet* USkeleton::ConvertAnimsTK()
+{
+	CAnimSet* animSet = new CAnimSet(this);
+	CopyArray(animSet->TrackBonesInfo, this->ReferenceSkeleton.RefBoneInfo);
+	CopyArray(animSet->BonePositions, this->ReferenceSkeleton.RefBonePose);
+	CopyArray(animSet->BoneModes, this->BoneTree);
+	return animSet;
+}
+CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
+{
+	UAnimSequence4* Seq = this;
+	CAnimSequence* Dst = new CAnimSequence(Seq);
+	Dst->Name = Seq->Name;
+	Dst->NumFrames = Seq->NumFrames;
+	Dst->Rate = Seq->NumFrames / Seq->SequenceLength * Seq->RateScale;
+	Dst->bAdditive = Seq->AdditiveAnimType != AAT_None;
+
+	if (Seq->BoneCodecDDCHandle.EndsWith("ACL_0")) // BEKAACL
+	{
+		byte* allocptr = (byte*)nAllocate(Seq->SerializedByteStream.Num(), 16);
+		memcpy(allocptr, Seq->SerializedByteStream.GetData(), Seq->SerializedByteStream.Num() * sizeof(uint8));
+
+		struct RawBufferHeader
+		{
+			uint32 Size;
+			uint32 Hash;
+		};
+
+		struct TracksHeader
+		{
+			uint32 Tag;
+			uint16 Version;
+			byte AlgorithmType;
+			byte TrackType;
+			uint32 NumTracks;
+			uint32 NumSamples;
+			float SampleRate;
+			uint32 MiscPacked;
+
+			bool GetHasScale() { return (MiscPacked & 1) != 0; }
+		};
+
+		TracksHeader header = *(TracksHeader*)(allocptr + sizeof(RawBufferHeader));
+
+		int NumKeys = header.NumSamples * header.NumTracks;
+
+		TArray<FVector> PosKeys;
+		PosKeys.AddUninitialized(NumKeys);
+		TArray<FQuat> RotKeys;
+		RotKeys.AddUninitialized(NumKeys);
+
+		TArray<FVector> ScaleKeys;
+		ScaleKeys.AddUninitialized(NumKeys);
+
+		nReadACLData(allocptr, PosKeys.GetData(), RotKeys.GetData(), ScaleKeys.GetData());
+
+#if !SUPPORT_SCALE_KEYS
+		ScaleKeys.Empty();
+#endif
+
+		for (int BoneIndex = 0; BoneIndex < this->Skeleton->ReferenceSkeleton.RefBoneInfo.Num(); BoneIndex++)
+		{
+			CAnimTrack* A = new CAnimTrack;
+			Dst->Tracks.Add(A);
+
+			int TrackIndex = Seq->FindTrackForBoneIndex(BoneIndex);
+
+			if (TrackIndex < 0)
+			{
+				// This bone is not animated with this UAnimSequence (but it may be animated with other
+				// ones which shares the same USkeleton). Just use an empty track, it should be properly
+				// handled by our animation system.
+				continue;
+			}
+			int Offset = TrackIndex * header.NumSamples;
+
+			CopyArray(A->KeyPos, CVT(PosKeys), (int32)header.NumSamples, Offset);
+			CopyArray(A->KeyQuat, CVT(RotKeys), (int32)header.NumSamples, Offset);
+#if SUPPORT_SCALE_KEYS
+			CopyArray(A->KeyScale, CVT(ScaleKeys), (int32)header.NumSamples, Offset);
+#endif // SUPPORT_SCALE_KEYS
+		}
+		nDeallocate(allocptr, Seq->SerializedByteStream.Num());
+	}
+	return Dst;
+}
 
 #if BAKE_BONE_SCALES
 
@@ -662,7 +748,24 @@ static void AdjustSequenceBySkeleton(USkeleton* Skeleton, const TArray<FTransfor
 }
 
 #endif // BAKE_BONE_SCALES
+CAnimSet* USkeleton::ConvertAnimsBK(UAnimSequence4* animSequence)
+{
+	CAnimSet* animSet = this->ConvertAnimsTK();
 
+	if (!animSequence) {
+		return animSet;
+	}
+
+	//// Store UAnimSequence in 'OriginalAnims' array, we just need it from time to time
+	////OriginalAnims.Add(animSequence);
+
+	//// Create CAnimSequence
+	CAnimSequence* idktt = animSequence->ConvertSequence(this);
+	animSet->Sequences.Add(idktt);
+	FixRotationKeys(idktt);
+	AdjustSequenceBySkeleton(this, this->ReferenceSkeleton.RefBonePose, idktt);
+	return animSet;
+}
 void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 {
 	guard(USkeleton::ConvertAnims);
@@ -678,7 +781,7 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 		int NumBones = ReferenceSkeleton.RefBoneInfo.Num();
 		assert(BoneTree.Num() == NumBones);
 
-		AnimSet->TrackBoneNames.Empty(NumBones);
+		AnimSet->TrackBonesInfo.Empty(NumBones);
 		AnimSet->BonePositions.Empty(NumBones);
 		AnimSet->BoneModes.AddZeroed(NumBones);
 
@@ -690,12 +793,13 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 		for (int i = 0; i < NumBones; i++)
 		{
 			// Store bone name
-			AnimSet->TrackBoneNames.Add(ReferenceSkeleton.RefBoneInfo[i].Name);
+			AnimSet->TrackBonesInfo.Add(ReferenceSkeleton.RefBoneInfo[i]);
 			// Store skeleton's bone transform
-			CSkeletonBonePosition BonePosition;
+			//CSkeletonBonePosition BonePosition;
+			FTransform BonePosition;
 			const FTransform& Transform = ReferenceSkeleton.RefBonePose[i];
-			BonePosition.Position = CVT(Transform.Translation);
-			BonePosition.Orientation = CVT(Transform.Rotation);
+			BonePosition.Translation = Transform.Translation;
+			BonePosition.Rotation = Transform.Rotation;
 #if DEBUG_RETARGET
 			if ((fabs(Transform.Scale3D.X - 1.0f) > 0.001f) ||
 				(fabs(Transform.Scale3D.Y - 1.0f) > 0.001f) ||
@@ -705,28 +809,8 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 			AnimSet->BonePositions.Add(BonePosition);
 			// Process bone retargeting mode
 			EBoneRetargetingMode BoneMode =EBoneRetargetingMode::Animation;
-			switch (BoneTree[i].TranslationRetargetingMode)
-			{
-			case EBoneTranslationRetargetingMode::Skeleton:
-				BoneMode = EBoneRetargetingMode::Mesh;
-				break;
-			case EBoneTranslationRetargetingMode::Animation:
-				BoneMode = EBoneRetargetingMode::Animation;
-				break;
-			case EBoneTranslationRetargetingMode::AnimationScaled:
-				BoneMode = EBoneRetargetingMode::AnimationScaled;
-				break;
-			case EBoneTranslationRetargetingMode::AnimationRelative:
-				BoneMode = EBoneRetargetingMode::AnimationRelative;
-				break;
-			case EBoneTranslationRetargetingMode::OrientAndScale:
-				BoneMode = EBoneRetargetingMode::OrientAndScale;
-				break;
-			default:
-				//todo: other modes?
-				BoneMode = EBoneRetargetingMode::OrientAndScale;
-			}
-			AnimSet->BoneModes[i] = BoneMode;
+			AnimSet->BoneModes[i] = BoneTree[i];
+			//AnimSet->BoneModes[i] = BoneTree[i].TranslationRetargetingMode;
 #if DEBUG_ANIM
 			appPrintf("  %d: %s: (%g %g %g) mode=%d\n", i, *ReferenceSkeleton.RefBoneInfo[i].Name,
 				VECTOR_ARG(ReferenceSkeleton.RefBonePose[i].Translation), BoneTree[i].TranslationRetargetingMode);

@@ -1251,11 +1251,19 @@ struct FQuat
 	{
 		X = _X; Y = _Y; Z = _Z; W = _W;
 	}
-
+	void Normalize()
+	{
+		const float Scale = 1.0f / sqrt(X * X + Y * Y + Z * Z + W * W);
+		X *= Scale;
+		Y *= Scale;
+		Z *= Scale;
+		W *= Scale;
+	}
 	friend FArchive& operator<<(FArchive &Ar, FQuat &F)
 	{
 		return Ar << F.X << F.Y << F.Z << F.W;
 	}
+
 };
 
 

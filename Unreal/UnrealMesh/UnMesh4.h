@@ -199,7 +199,7 @@ public:
 	FGuid					Guid;
 	FSmartNameContainer		SmartNames;
 	TArray<FVirtualBone>	VirtualBones;
-	TArray<FBoneNode>		BoneTree;
+	TArray<EBoneTranslationRetargetingMode>BoneTree;
 	TArray<USkeletalMeshSocket4*> Sockets;
 	TArray<FAnimSlotGroup>	SlotGroups;
 
@@ -226,7 +226,7 @@ public:
 
 	// Convert a single UAnimSequence to internal animation format
 	void ConvertAnims(UAnimSequence4* Seq);
-	CAnimSet ConvertAnimsBK(UAnimSequence4* Seq);
+	CAnimSet* ConvertAnimsBK(UAnimSequence4* Seq);
 	CAnimSet* ConvertAnimsTK();
 };
 
@@ -1079,6 +1079,7 @@ public:
 	int GetNumTracks() const;
 	int GetTrackBoneIndex(int TrackIndex) const;
 	int FindTrackForBoneIndex(int BoneIndex) const;
+	CAnimSequence* ConvertSequence(USkeleton* skeleton);
 	void TransferPerTrackData(TArray<uint8>& Dst, const TArray<uint8>& Src);
 };
 

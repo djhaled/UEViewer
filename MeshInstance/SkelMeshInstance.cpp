@@ -309,8 +309,8 @@ void CSkelMeshInstance::SetAnim(const CAnimSet *Anim)
 		data->AnimBoneIndex = INDEX_NONE;		// in a case when bone has no corresponding animation track
 		if (Animation)
 		{
-			for (int j = 0; j < Animation->TrackBoneNames.Num(); j++)
-				if (!stricmp(B.Name, Animation->TrackBoneNames[j]))
+			for (int j = 0; j < Animation->TrackBonesInfo.Num(); j++)
+				if (!stricmp(B.Name, Animation->TrackBonesInfo[j].Name))
 				{
 					data->AnimBoneIndex = j;
 					break;
@@ -550,16 +550,16 @@ void CSkelMeshInstance::UpdateSkeleton()
 				}
 				// Process bone translation mode (animation retargeting).
 				// Current state:
-				EBoneRetargetingMode RetargetingMode = Animation->GetBoneTranslationMode(AnimBoneIndex, (EAnimRetargetingMode)RetargetingModeOverride);
+				EBoneTranslationRetargetingMode RetargetingMode = Animation->GetBoneTranslationMode(AnimBoneIndex, (EAnimRetargetingMode)RetargetingModeOverride);
 #if SHOW_ANIM
 				BoneDebug.RetargetMode = RetargetingMode;
 #endif
 				switch (RetargetingMode)
 				{
-				case EBoneRetargetingMode::Animation:
+				case EBoneTranslationRetargetingMode::Animation:
 					// Use translation from the animation. Already set, do nothing.
 					break;
-				case EBoneRetargetingMode::Mesh:
+				case EBoneTranslationRetargetingMode::Skeleton:
 					{
 						CVec3 SourceTrans = AnimSeq1->RetargetBasePose.Num()
 							? AnimSeq1->RetargetBasePose[AnimBoneIndex].Position
@@ -570,12 +570,16 @@ void CSkelMeshInstance::UpdateSkeleton()
 						BoneUpdateCounts[i] += 3;
 					}
 					break;
-				case EBoneRetargetingMode::AnimationScaled:
+				case EBoneTranslationRetargetingMode::AnimationScaled:
 					{
 						// Like ::OrientAndScale, but without rotation
+					CVec3 tt;
+					tt.X = Animation->BonePositions[AnimBoneIndex].Translation.X;
+					tt.Y = Animation->BonePositions[AnimBoneIndex].Translation.Y;
+					tt.Y = Animation->BonePositions[AnimBoneIndex].Translation.Z;
 						CVec3 SourceTrans = AnimSeq1->RetargetBasePose.Num()
 							? AnimSeq1->RetargetBasePose[AnimBoneIndex].Position
-							: Animation->BonePositions[AnimBoneIndex].Position;
+							: Animation->BonePositions[AnimBoneIndex].Translation;
 						CVec3 TargetTrans = Bone.Position;
 						float SourceTransLength = SourceTrans.GetLength();
 						if (SourceTransLength > 0.001f)
@@ -597,19 +601,19 @@ void CSkelMeshInstance::UpdateSkeleton()
 						}
 					}
 					break;
-				case EBoneRetargetingMode::AnimationRelative:
+				case EBoneTranslationRetargetingMode::AnimationRelative:
 					{
 						//todo
 					}
 					break;
-				case EBoneRetargetingMode::OrientAndScale:
+				case EBoneTranslationRetargetingMode::OrientAndScale:
 					{
 						// Reference skeleton bone data is required here
 						assert(Animation->BonePositions.Num() != 0);
 						// Reference: FBoneContainer::GetRetargetSourceCachedData()
 						CVec3 SourceTransDir = AnimSeq1->RetargetBasePose.Num()
 							? AnimSeq1->RetargetBasePose[AnimBoneIndex].Position
-							: Animation->BonePositions[AnimBoneIndex].Position;
+							: Animation->BonePositions[AnimBoneIndex].Translation;
 						CVec3 TargetTransDir = Bone.Position;
 
 						//todo: optimization: can compare SourceTransDir and TargetTransDir, just copy animated position if same

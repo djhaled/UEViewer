@@ -8,7 +8,7 @@
 #include "Mesh/SkeletalMesh.h"
 #include "Mesh/StaticMesh.h"
 #include "TypeConvert.h"
-
+//#include "AnimationRuntime.h"
 #include "Psk.h"
 #include "Exporters.h"
 
@@ -867,17 +867,17 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 
 	unguard;
 }
-CAnimSet* GetAdditive(const UAnimSequence4* additiveAnimSequence)
+CAnimSet* GetAdditive(const UAnimSequence4* additiveAnimSequence, const CAnimSet* tecoteco)
 {
 	USkeleton* additiveSkeleton = additiveAnimSequence->Skeleton;
 
 	UAnimSequence4* reference = additiveAnimSequence->RefPoseSeq;
 	USkeleton* referenceSkeleton = reference->Skeleton;
 	//const CAnimSet* additiveAnimSet = additiveSkeleton->ConvertAnims(additiveAnimSequence);
-	//const CAnimSet* referenceAnimSet = referenceSkeleton->ConvertAnims(reference);
-	UAnimSequence4* tt = const_cast<UAnimSequence4*>(additiveAnimSequence);
-	additiveSkeleton->ConvertAnims(tt);
-	USkeleton* test = reference->Skeleton;
+	CAnimSequence* AddAnimSeq = tecoteco->Sequences[0];
+	CAnimSequence* AnimRef = tecoteco->Sequences[1];
+	AddAnimSeq->OriginalSequence = AnimRef->OriginalSequence;
+	//FAnimationRuntime::LoadAsPoses(tecoteco);
 
 
 	return nullptr;
@@ -895,8 +895,8 @@ void ExportPsa(const CAnimSet* Anim)
 	const UAnimSequence4* animSeq = static_cast<const UAnimSequence4*>(OriginalAnim);
 	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() > 1)
 	{
-		Anim = GetAdditive(animSeq);
-		DoExportPsa(Anim, OriginalAnim);
+		Anim = GetAdditive(animSeq,Anim);
+		//DoExportPsa(Anim, OriginalAnim);
 		return;
 	}
 	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() == 1)
