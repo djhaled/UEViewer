@@ -8,7 +8,7 @@
 #include "Mesh/SkeletalMesh.h"
 #include "Mesh/StaticMesh.h"
 #include "TypeConvert.h"
-//#include "AnimationRuntime.h"
+#include "AnimationRuntime.h"
 #include "Psk.h"
 #include "Exporters.h"
 
@@ -877,7 +877,7 @@ CAnimSet* GetAdditive(const UAnimSequence4* additiveAnimSequence, const CAnimSet
 	CAnimSequence* AddAnimSeq = tecoteco->Sequences[0];
 	CAnimSequence* AnimRef = tecoteco->Sequences[1];
 	AddAnimSeq->OriginalSequence = AnimRef->OriginalSequence;
-	//FAnimationRuntime::LoadAsPoses(tecoteco);
+	const TArray<FCompactPose*>& AdditivePoses = FAnimationRuntime::LoadAsPoses(tecoteco);
 
 
 	return nullptr;
