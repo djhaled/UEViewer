@@ -591,7 +591,7 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 	MainHdr.TypeFlag = PSA_VERSION;
 	SAVE_CHUNK(MainHdr, "ANIMHEAD");
 
-	int numBones = Anim->TrackBoneNames.Num();
+	int numBones = Anim->TrackBonesInfo.Num();
 	int numAnims = Anim->Sequences.Num();
 
 	BoneHdr.DataCount = numBones;
@@ -601,7 +601,7 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 	{
 		FNamedBoneBinary B;
 		memset(&B, 0, sizeof(B));
-		CopyBoneName(B.Name, sizeof(B.Name), *Anim->TrackBoneNames[i]);
+		CopyBoneName(B.Name, sizeof(B.Name), *Anim->TrackBonesInfo[i].Name);
 		B.Flags       = 0;						// reserved
 		B.NumChildren = 0;						// unknown here
 		B.ParentIndex = (i > 0) ? 0 : -1;		// unknown for UAnimSet
@@ -612,8 +612,10 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 			FQuat Q1;
 			CQuat Q2 = CVT(Q1);
 			Q1 = CVT(Q2);
-			B.BonePos.Position = CVT(Anim->BonePositions[i].Position);
-			B.BonePos.Orientation = CVT(Anim->BonePositions[i].Orientation);
+			//B.BonePos.Position = CVT(Anim->BonePositions[i].Translation);
+			B.BonePos.Position = Anim->BonePositions[i].Translation;
+			B.BonePos.Orientation = Anim->BonePositions[i].Rotation;
+			//B.BonePos.Orientation = CVT(Anim->BonePositions[i].Rotation);
 		}
 		Ar << B;
 	}
@@ -765,7 +767,7 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 	// Get statistics of each bone retargeting mode to see if we need a config or not
 	int ModeCounts[(int)EBoneRetargetingMode::Count];
 	memset(ModeCounts, 0, sizeof(ModeCounts));
-	for (EBoneRetargetingMode Mode : Anim->BoneModes)
+	for (EBoneTranslationRetargetingMode Mode : Anim->BoneModes)
 	{
 		ModeCounts[(int)Mode]++;
 	}
@@ -800,8 +802,8 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 			// UseTranslationBoneNames: allow animated translation
 			Ar1->Printf("\n[UseTranslationBoneNames]\n");
 			for (i = 0; i < Anim->BoneModes.Num(); i++)
-				if (Anim->BoneModes[i] == EBoneRetargetingMode::Animation)
-					Ar1->Printf("%s\n", *Anim->TrackBoneNames[i]);
+				if (Anim->BoneModes[i] == EBoneTranslationRetargetingMode::Animation)
+					Ar1->Printf("%s\n", *Anim->TrackBonesInfo[i].Name);
 			// ForceMeshTranslationBoneNames: this will revert a bone back to translation from the mesh.
 			// It is no longer used. In UE3, it was possible to set up AnimRotationOnly per mesh, or from
 			// AnimTree, so this setting wasn't global.
@@ -865,6 +867,24 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 
 	unguard;
 }
+CAnimSet* GetAdditive(const UAnimSequence4* additiveAnimSequence)
+{
+	USkeleton* additiveSkeleton = additiveAnimSequence->Skeleton;
+
+	UAnimSequence4* reference = additiveAnimSequence->RefPoseSeq;
+	USkeleton* referenceSkeleton = reference->Skeleton;
+	//const CAnimSet* additiveAnimSet = additiveSkeleton->ConvertAnims(additiveAnimSequence);
+	//const CAnimSet* referenceAnimSet = referenceSkeleton->ConvertAnims(reference);
+	UAnimSequence4* tt = const_cast<UAnimSequence4*>(additiveAnimSequence);
+	additiveSkeleton->ConvertAnims(tt);
+	USkeleton* test = reference->Skeleton;
+
+
+	return nullptr;
+}
+
+
+
 
 void ExportPsa(const CAnimSet* Anim)
 {
@@ -872,7 +892,13 @@ void ExportPsa(const CAnimSet* Anim)
 
 	// Determine if CAnimSet will save animations as separate psa files, or all at once
 	const UObject* OriginalAnim = GetPrimaryAnimObject(Anim);
-
+	const UAnimSequence4* animSeq = static_cast<const UAnimSequence4*>(OriginalAnim);
+	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() > 1)
+	{
+		Anim = GetAdditive(animSeq);
+		DoExportPsa(Anim, OriginalAnim);
+		return;
+	}
 	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() == 1)
 	{
 		// Export all animations in a single file

@@ -29,9 +29,9 @@ void UMeshAnimation::ConvertAnims()
 
 	// TrackBoneNames
 	int numBones = RefBones.Num();
-	AnimSet->TrackBoneNames.AddUninitialized(numBones);
+	AnimSet->TrackBonesInfo.AddUninitialized(numBones);
 	for (i = 0; i < numBones; i++)
-		AnimSet->TrackBoneNames[i] = RefBones[i].Name;
+		AnimSet->TrackBonesInfo[i].Name = RefBones[i].Name;
 
 	// Sequences
 	int numSeqs = AnimSeqs.Num();

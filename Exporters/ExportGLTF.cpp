@@ -620,9 +620,9 @@ static void ExportAnimations(GLTFExportContext& Context, FArchive& Ar)
 	for (int i = 0; i < NumBones; i++)
 	{
 		const CSkelMeshBone &B = Context.SkelMesh->RefSkeleton[i];
-		for (int j = 0; j < Anim->TrackBoneNames.Num(); j++)
+		for (int j = 0; j < Anim->TrackBonesInfo.Num(); j++)
 		{
-			if (!stricmp(B.Name, Anim->TrackBoneNames[j]))
+			if (!stricmp(B.Name, Anim->TrackBonesInfo[j].Name))
 			{
 				BoneMap[i] = j;			// lookup CAnimSet bone by mesh bone index
 				AnimBones.Add(i);		// indicate that the bone has animation

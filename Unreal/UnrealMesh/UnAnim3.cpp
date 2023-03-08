@@ -622,7 +622,7 @@ void UAnimSet::ConvertAnims()
 		appPrintf("WARNING: AnimSet %s has %d sequences, but empty TrackBoneNames\n", Name, Sequences.Num());
 		return;
 	}
-	CopyArray(AnimSet->TrackBoneNames, TrackBoneNames);
+	//CopyArray(AnimSet->TrackBoneNames, TrackBoneNames);
 
 #if FIND_HOLES
 	bool findHoles = true;
@@ -632,14 +632,14 @@ void UAnimSet::ConvertAnims()
 	if (UseTranslationBoneNames.Num() || ForceMeshTranslationBoneNames.Num())
 	{
 		// Setup animation retargeting
-		AnimSet->BoneModes.Init(EBoneRetargetingMode::Mesh, NumTracks);
+		AnimSet->BoneModes.Init(EBoneTranslationRetargetingMode::Skeleton, NumTracks);
 		if (UseTranslationBoneNames.Num() && bAnimRotationOnly)
 		{
 			for (i = 0; i < UseTranslationBoneNames.Num(); i++)
 			{
 				for (j = 0; j < TrackBoneNames.Num(); j++)
 					if (UseTranslationBoneNames[i] == TrackBoneNames[j])
-						AnimSet->BoneModes[j] = EBoneRetargetingMode::Animation;
+						AnimSet->BoneModes[j] = EBoneTranslationRetargetingMode::Animation;
 			}
 		}
 		if (ForceMeshTranslationBoneNames.Num())
@@ -652,7 +652,7 @@ void UAnimSet::ConvertAnims()
 			{
 				for (j = 0; j < TrackBoneNames.Num(); j++)
 					if (ForceMeshTranslationBoneNames[i] == TrackBoneNames[j])
-						AnimSet->BoneModes[j] = EBoneRetargetingMode::Mesh;
+						AnimSet->BoneModes[j] = EBoneTranslationRetargetingMode::Skeleton;
 			}
 		}
 	}

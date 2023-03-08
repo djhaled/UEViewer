@@ -1118,12 +1118,18 @@ void appReverseBytes(void *Block, int NumItems, int ItemSize);
 struct FVector
 {
 	float	X, Y, Z;
-
 	void Set(float _X, float _Y, float _Z)
 	{
 		X = _X; Y = _Y; Z = _Z;
 	}
-
+	operator CVec3() const
+	{
+		CVec3 tt;
+		tt.X = X;
+		tt.Y = Y;
+		tt.Z = Z;
+		return tt;
+	}
 	void Add(const FVector& Other)
 	{
 		X += Other.X;

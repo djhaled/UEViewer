@@ -226,6 +226,8 @@ public:
 
 	// Convert a single UAnimSequence to internal animation format
 	void ConvertAnims(UAnimSequence4* Seq);
+	CAnimSet ConvertAnimsBK(UAnimSequence4* Seq);
+	CAnimSet* ConvertAnimsTK();
 };
 
 

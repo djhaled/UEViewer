@@ -32,7 +32,8 @@ bool UIStartupDialog::Show()
 void UIStartupDialog::InitUI()
 {
 	guard(UIStartupDialog::InitUI);
-
+	Opt.GameOverride = GAME_Valorant;
+	Opt.GamePath = "C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Content\\Paks";
 	(*this)
 	[
 		NewControl(UILabel, "Path to game files:")
@@ -40,7 +41,6 @@ void UIStartupDialog::InitUI()
 		//!! could check file extensions in target directory and at least
 		//!! set "engine" part of "game override", if it is not set yet
 	];
-
 	NewControl(UICheckboxGroup, "Override game detection", Opt.GameOverride != GAME_UNKNOWN)
 	.SetParent(this)
 	.Expose(OverrideGameGroup)

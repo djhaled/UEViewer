@@ -301,7 +301,7 @@ void ExportMd5Anim(const CAnimSet *Anim)
 {
 	guard(ExportMd5Anim);
 
-	int numBones = Anim->TrackBoneNames.Num();
+	int numBones = Anim->TrackBonesInfo.Num();
 	const UObject *OriginalAnim = Anim->OriginalAnim;
 
 	for (int AnimIndex = 0; AnimIndex < Anim->Sequences.Num(); AnimIndex++)
@@ -337,7 +337,7 @@ void ExportMd5Anim(const CAnimSet *Anim)
 		Ar->Printf("hierarchy {\n");
 		for (i = 0; i < numBones; i++)
 		{
-			Ar->Printf("\t\"%s\" %d %d %d\n", *Anim->TrackBoneNames[i], (i == 0) ? -1 : 0, 63, i * 6);
+			Ar->Printf("\t\"%s\" %d %d %d\n", *Anim->TrackBonesInfo[i].Name, (i == 0) ? -1 : 0, 63, i * 6);
 				// ParentIndex is unknown for UAnimSet, so always write "0"
 				// here: 6 is number of components per frame, 63 = (1<<6)-1 -- flags "all components are used"
 		}
