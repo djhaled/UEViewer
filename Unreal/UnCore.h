@@ -1165,6 +1165,26 @@ struct FVector
 #endif
 		return Ar;
 	}
+	inline FVector operator*(float s)
+	{
+		FVector br;
+		br.Set(X * s, Y * s, Z * s);
+		return br;
+	}
+	FVector& FVector::operator+=(const FVector& b)
+	{
+		X += b.X;
+		Y += b.Y;
+		Z += b.Z;
+		return *this;
+	}
+	inline FVector operator*=(FVector f)
+	{
+		X *= f.X;
+		Y *= f.Y;
+		Z *= f.Z;
+		return *this;
+	}
 };
 
 struct FVector4
@@ -1251,6 +1271,17 @@ struct FQuat
 	{
 		X = _X; Y = _Y; Z = _Z; W = _W;
 	}
+	float THRESH_QUAT_NORMALIZED = 0.0001f; // You can adjust this value as needed
+
+	bool IsNormalized() const
+	{
+		return fabs(1.0f - SizeSquared()) < THRESH_QUAT_NORMALIZED;
+	}
+
+	float SizeSquared() const
+	{
+		return X * X + Y * Y + Z * Z + W * W;
+	}
 	void Normalize()
 	{
 		const float Scale = 1.0f / sqrt(X * X + Y * Y + Z * Z + W * W);
@@ -1259,9 +1290,30 @@ struct FQuat
 		Z *= Scale;
 		W *= Scale;
 	}
+	FQuat Inverse() const
+	{
+		if (IsNormalized())
+		{
+			//return FQuat(-X, -Y, -Z, W);
+			FQuat tt;
+			tt.Set(-X, -Y, -Z, W);
+			return tt;
+		}
+	}
+
 	friend FArchive& operator<<(FArchive& Ar, FQuat& F)
 	{
 		return Ar << F.X << F.Y << F.Z << F.W;
+	}
+
+	friend FQuat operator*(const FQuat& lhs, const FQuat& rhs)
+	{
+		FQuat result;
+		result.X = lhs.W * rhs.X + lhs.X * rhs.W + lhs.Y * rhs.Z - lhs.Z * rhs.Y;
+		result.Y = lhs.W * rhs.Y - lhs.X * rhs.Z + lhs.Y * rhs.W + lhs.Z * rhs.X;
+		result.Z = lhs.W * rhs.Z + lhs.X * rhs.Y - lhs.Y * rhs.X + lhs.Z * rhs.W;
+		result.W = lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z;
+		return result;
 	}
 	FQuat operator*(const FQuat& Other) const
 	{
@@ -1271,6 +1323,12 @@ struct FQuat
 		Result.Z = W * Other.Z + Z * Other.W + X * Other.Y - Y * Other.X;
 		Result.W = W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z;
 		return Result;
+	}
+	friend FQuat operator*(const FQuat& q, const float& s)
+	{
+		FQuat ide;
+		ide.Set(q.X * s, q.Y * s, q.Z * s, q.W * s);
+		return ide;
 	}
 };
 
