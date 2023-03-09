@@ -362,6 +362,8 @@ public:
 	CAnimSet()
 	{}
 
+
+
 	CAnimSet(const UObject *Original)
 	:	OriginalAnim(Original)
 	{}

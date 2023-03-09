@@ -620,14 +620,6 @@ static void FixRotationKeys(CAnimSequence* Anim)
 		}
 	}
 }
-CAnimSet* USkeleton::ConvertAnimsTK()
-{
-	CAnimSet* animSet = new CAnimSet(this);
-	CopyArray(animSet->TrackBonesInfo, this->ReferenceSkeleton.RefBoneInfo);
-	CopyArray(animSet->BonePositions, this->ReferenceSkeleton.RefBonePose);
-	CopyArray(animSet->BoneModes, this->BoneTree);
-	return animSet;
-}
 CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 {
 	UAnimSequence4* Seq = this;
@@ -715,10 +707,8 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	UAnimSequence4* animSequence4 = static_cast<UAnimSequence4*>(const_cast<UObject*>(SeqObj));
 	int refFramIndex = animSequence4->RefFrameIndex;
 	UAnimSequence4* refPoseSeq = animSequence4->RefPoseSeq;
-	//
-	//USkeleton* refPoseSkel = refPoseSeq->Skeleton ?? skeleton
 	USkeleton* refPoseSkel = (refPoseSeq != nullptr) ? refPoseSeq->Skeleton : skeleton;
-	CAnimSet* RefAnimSet = refPoseSkel->ConvertAnimsBK(refPoseSeq);
+	CAnimSet* RefAnimSet = refPoseSkel->ConvertAnimation(refPoseSeq);
 	const TArray<FCompactPose>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
 
 	const TArray<FCompactPose>& referencePoses = [&]() -> const TArray<FCompactPose>&
@@ -836,24 +826,6 @@ CAnimSet* USkeleton::ConvertToAnimSet()
 {
 	CAnimSet* Set = new CAnimSet(this);
 	return Set;
-}
-CAnimSet* USkeleton::ConvertAnimsBK(UAnimSequence4* animSequence)
-{
-	CAnimSet* animSet = this->ConvertAnimsTK();
-
-	if (!animSequence) {
-		return animSet;
-	}
-
-	//// Store UAnimSequence in 'OriginalAnims' array, we just need it from time to time
-	////OriginalAnims.Add(animSequence);
-
-	//// Create CAnimSequence
-	CAnimSequence* idktt = animSequence->ConvertSequence(this);
-	animSet->Sequences.Add(idktt);
-	FixRotationKeys(idktt);
-	AdjustSequenceBySkeleton(this, this->ReferenceSkeleton.RefBonePose, idktt);
-	return animSet;
 }
 void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 {
@@ -1345,7 +1317,7 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 	FixRotationKeys(Dst);
 	if (Seq->AdditiveAnimType != AAT_None)
 	{
-		AnimSet = ConvertAnimas(Seq->Skeleton, Seq);
+		ConvertedAnim = Seq->Skeleton->ConvertAnimation(Seq);
 	}
 #if BAKE_BONE_SCALES
 	// And apply scales to positions, when skeleton has any
@@ -1363,12 +1335,12 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 // PostSerialize() adds some serialization logic to data which were serialized as properties. These functions
 // were called in UE4.12 and earlier as "Serialize" and in 4.13 renamed to "PostSerialize".
-CAnimSet* USkeleton::ConvertAnimas(USkeleton* skeleton, UAnimSequence4* anim)
+CAnimSet* USkeleton::ConvertAnimation(UAnimSequence4* anim)
 {
-	CAnimSet* animSet = skeleton->ConvertToAnimSet();
+	CAnimSet* animSet = this->ConvertToAnimSet();
 	if (!anim) { return animSet; }
 
-	animSet->Sequences.Add(anim->ConvertSequence(skeleton));
+	animSet->Sequences.Add(anim->ConvertSequence(this));
 
 	return animSet;
 }

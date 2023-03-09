@@ -62,8 +62,8 @@ void FAnimationRuntime::ConvertPoseToMeshRotation(FCompactPose localPose)
 const TArray<FCompactPose>& FAnimationRuntime::LoadAsPoses(const CAnimSequence* seq, const USkeleton* Skeleton, const int refFrame)
 {
 	TArray<FCompactPose>* Poses = new TArray<FCompactPose>();
-	Poses->SetNum(seq->NumFrames);
-	for (int frameIndex = 0; frameIndex < seq->NumFrames; frameIndex++)
+	Poses->SetNum(1);
+	for (int frameIndex = 0; frameIndex < Poses->Num(); frameIndex++)
 	{
 		FCompactPose& CpactPose = (*Poses)[frameIndex];
 		CpactPose.Bones.SetNum(Skeleton->BoneTree.Num());

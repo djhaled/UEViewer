@@ -590,10 +590,9 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 
 	MainHdr.TypeFlag = PSA_VERSION;
 	SAVE_CHUNK(MainHdr, "ANIMHEAD");
-
-	int numBones = Anim->TrackBonesInfo.Num();
+	USkeleton* SkelAnim = static_cast<USkeleton*>(const_cast<UObject*>(Anim->OriginalAnim));
+	int numBones = SkelAnim->BoneTree.Num();
 	int numAnims = Anim->Sequences.Num();
-
 	BoneHdr.DataCount = numBones;
 	BoneHdr.DataSize  = sizeof(FNamedBoneBinary);
 	SAVE_CHUNK(BoneHdr, "BONENAMES");
