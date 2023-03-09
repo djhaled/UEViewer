@@ -600,7 +600,10 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 	{
 		FNamedBoneBinary B;
 		memset(&B, 0, sizeof(B));
-		CopyBoneName(B.Name, sizeof(B.Name), *Anim->TrackBonesInfo[i].Name);
+		FMeshBoneInfo BoneInfo = SkelAnim->ReferenceSkeleton.RefBoneInfo[i];
+		FTransform boneTransform = SkelAnim->ReferenceSkeleton.RefBonePose[i];
+
+		CopyBoneName(B.Name, sizeof(B.Name), *BoneInfo.Name);
 		B.Flags       = 0;						// reserved
 		B.NumChildren = 0;						// unknown here
 		B.ParentIndex = (i > 0) ? 0 : -1;		// unknown for UAnimSet
@@ -612,8 +615,9 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 			CQuat Q2 = CVT(Q1);
 			Q1 = CVT(Q2);
 			//B.BonePos.Position = CVT(Anim->BonePositions[i].Translation);
-			B.BonePos.Position = Anim->BonePositions[i].Translation;
-			B.BonePos.Orientation = Anim->BonePositions[i].Rotation;
+			B.BonePos.Position = boneTransform.Translation;
+			B.BonePos.Orientation = boneTransform.Rotation;
+			B.BonePos.Size = boneTransform.Scale3D;
 			//B.BonePos.Orientation = CVT(Anim->BonePositions[i].Rotation);
 		}
 		Ar << B;
