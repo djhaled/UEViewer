@@ -226,8 +226,10 @@ public:
 
 	// Convert a single UAnimSequence to internal animation format
 	void ConvertAnims(UAnimSequence4* Seq);
+	CAnimSet* ConvertAnimas(USkeleton* skeleton, UAnimSequence4* anim);
 	CAnimSet* ConvertAnimsBK(UAnimSequence4* Seq);
 	CAnimSet* ConvertAnimsTK();
+	CAnimSet* ConvertToAnimSet();
 };
 
 
@@ -814,6 +816,8 @@ enum EAdditiveBasePoseType
 	ABPT_RefPose,
 	ABPT_AnimScaled,
 	ABPT_AnimFrame,
+	ABPT_LocalAnimFrame,
+
 };
 
 _ENUM(EAdditiveBasePoseType)
@@ -1079,7 +1083,8 @@ public:
 	int GetNumTracks() const;
 	int GetTrackBoneIndex(int TrackIndex) const;
 	int FindTrackForBoneIndex(int BoneIndex) const;
-	CAnimSequence* ConvertSequence(USkeleton* skeleton);
+	CAnimSequence* ConvertSequence(USkeleton* skeleton) ;
+	bool IsValidAdditive();
 	void TransferPerTrackData(TArray<uint8>& Dst, const TArray<uint8>& Src);
 };
 

@@ -7,7 +7,7 @@
 #include "UnMesh4.h"
 #include "UnMeshTypes.h"
 #include "UnrealPackage/UnPackage.h"
-
+#include "Exporters/AnimationRuntime.h"
 #include "Mesh/SkeletalMesh.h"
 #include "TypeConvert.h"
 
@@ -631,11 +631,11 @@ CAnimSet* USkeleton::ConvertAnimsTK()
 CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 {
 	UAnimSequence4* Seq = this;
-	CAnimSequence* Dst = new CAnimSequence(Seq);
-	Dst->Name = Seq->Name;
-	Dst->NumFrames = Seq->NumFrames;
-	Dst->Rate = Seq->NumFrames / Seq->SequenceLength * Seq->RateScale;
-	Dst->bAdditive = Seq->AdditiveAnimType != AAT_None;
+	CAnimSequence* AnimSeqC = new CAnimSequence(Seq);
+	AnimSeqC->Name = Seq->Name;
+	AnimSeqC->NumFrames = Seq->NumFrames;
+	AnimSeqC->Rate = Seq->NumFrames / Seq->SequenceLength * Seq->RateScale;
+	AnimSeqC->bAdditive = Seq->AdditiveAnimType != AAT_None;
 
 	if (Seq->BoneCodecDDCHandle.EndsWith("ACL_0")) // BEKAACL
 	{
@@ -683,7 +683,7 @@ CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 		for (int BoneIndex = 0; BoneIndex < this->Skeleton->ReferenceSkeleton.RefBoneInfo.Num(); BoneIndex++)
 		{
 			CAnimTrack* A = new CAnimTrack;
-			Dst->Tracks.Add(A);
+			AnimSeqC->Tracks.Add(A);
 
 			int TrackIndex = Seq->FindTrackForBoneIndex(BoneIndex);
 
@@ -704,7 +704,66 @@ CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 		}
 		nDeallocate(allocptr, Seq->SerializedByteStream.Num());
 	}
-	return Dst;
+	return !Seq->IsValidAdditive() ? AnimSeqC : AnimSeqC->ConvertAdditive(skeleton);
+
+}
+
+CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
+{
+	CAnimSequence* animSeq = this;
+	const UObject* SeqObj = animSeq->OriginalSequence;
+	UAnimSequence4* animSequence4 = static_cast<UAnimSequence4*>(const_cast<UObject*>(SeqObj));
+	int refFramIndex = animSequence4->RefFrameIndex;
+	UAnimSequence4* refPoseSeq = animSequence4->RefPoseSeq;
+	//
+	//USkeleton* refPoseSkel = refPoseSeq->Skeleton ?? skeleton
+	USkeleton* refPoseSkel = (refPoseSeq != nullptr) ? refPoseSeq->Skeleton : skeleton;
+	CAnimSet* RefAnimSet = refPoseSkel->ConvertAnimsBK(refPoseSeq);
+	const TArray<FCompactPose>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
+
+	const TArray<FCompactPose>& referencePoses = [&]() -> const TArray<FCompactPose>&
+	{
+		switch (animSequence4->RefPoseType)
+		{
+		case EAdditiveBasePoseType::ABPT_RefPose:
+			return FAnimationRuntime::LoadRestAsPoses(skeleton);
+		case EAdditiveBasePoseType::ABPT_AnimScaled:
+			return FAnimationRuntime::LoadAsPoses(RefAnimSet->Sequences[0], refPoseSkel);
+		case EAdditiveBasePoseType::ABPT_AnimFrame:
+			return FAnimationRuntime::LoadAsPoses(RefAnimSet->Sequences[0], refPoseSkel, refFramIndex);
+		case EAdditiveBasePoseType::ABPT_LocalAnimFrame:
+			return FAnimationRuntime::LoadAsPoses(animSeq, skeleton, refFramIndex);
+		default:
+			appPrintf("UnSupported Additive");
+		}
+	}();
+
+	// Do something with AdditivePoses
+
+	animSeq->Tracks = new TArray<CAnimTrack*>();
+
+
+
+	return nullptr;
+}
+bool UAnimSequence4::IsValidAdditive()
+{
+	if (AdditiveAnimType == EAdditiveAnimationType::AAT_None) {
+		return false;
+	}
+	switch (RefPoseType)
+	{
+	case EAdditiveBasePoseType::ABPT_RefPose:
+		return true;
+	case EAdditiveBasePoseType::ABPT_AnimScaled:
+		return RefPoseSeq != nullptr;
+	case EAdditiveBasePoseType::ABPT_AnimFrame:
+		return RefPoseSeq != nullptr && RefFrameIndex >= 0;
+	case EAdditiveBasePoseType::ABPT_LocalAnimFrame:
+		return RefFrameIndex >= 0;
+	default:
+		return false;
+	}
 }
 
 #if BAKE_BONE_SCALES
@@ -747,7 +806,13 @@ static void AdjustSequenceBySkeleton(USkeleton* Skeleton, const TArray<FTransfor
 	unguard;
 }
 
+
 #endif // BAKE_BONE_SCALES
+CAnimSet* USkeleton::ConvertToAnimSet()
+{
+	CAnimSet* Set = new CAnimSet(this);
+	return Set;
+}
 CAnimSet* USkeleton::ConvertAnimsBK(UAnimSequence4* animSequence)
 {
 	CAnimSet* animSet = this->ConvertAnimsTK();
@@ -768,10 +833,9 @@ CAnimSet* USkeleton::ConvertAnimsBK(UAnimSequence4* animSequence)
 }
 void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 {
+
 	guard(USkeleton::ConvertAnims);
-
 	CAnimSet* AnimSet = ConvertedAnim;
-
 	if (!AnimSet)
 	{
 		AnimSet = new CAnimSet(this);
@@ -1255,10 +1319,14 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 	// Now should invert all imported rotations
 	FixRotationKeys(Dst);
-
+	if (Seq->AdditiveAnimType != AAT_None)
+	{
+		AnimSet = ConvertAnimas(Seq->Skeleton, Seq);
+	}
 #if BAKE_BONE_SCALES
 	// And apply scales to positions, when skeleton has any
 	AdjustSequenceBySkeleton(this, RetargetTransforms ? *RetargetTransforms : ReferenceSkeleton.RefBonePose, Dst);
+
 #endif
 
 	unguardf("Skel=%s Anim=%s", Name, Seq->Name);
@@ -1271,6 +1339,15 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 // PostSerialize() adds some serialization logic to data which were serialized as properties. These functions
 // were called in UE4.12 and earlier as "Serialize" and in 4.13 renamed to "PostSerialize".
+CAnimSet* USkeleton::ConvertAnimas(USkeleton* skeleton, UAnimSequence4* anim)
+{
+	CAnimSet* animSet = skeleton->ConvertToAnimSet();
+	if (!anim) { return animSet; }
+
+	animSet->Sequences.Add(anim->ConvertSequence(skeleton));
+
+	return animSet;
+}
 
 void FAnimCurveBase::PostSerialize(FArchive& Ar)
 {

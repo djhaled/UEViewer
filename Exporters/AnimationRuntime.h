@@ -6,7 +6,7 @@
 class FPoseBone
 {
 public:
-	FTransform Transform;
+	FTransform Transform{};
 	int32 ParentIndex;
 	FString Name;
 	bool IsValidKey;
@@ -24,7 +24,7 @@ public:
 struct FCompactPose
 {
 public:
-	TArray<FPoseBone*> Bones;
+	TArray<FPoseBone> Bones;
 	int AnimFrame;
 	bool Processed;
 
@@ -33,7 +33,14 @@ public:
 		Bones.SetNum(refSkel.RefBoneInfo.Num());
 		AnimFrame = 0;
 		Processed = false;
+
+		for (int i = 0; i < Bones.Num(); ++i)
+		{
+			FPoseBone NewBone;
+			Bones[i] = NewBone;
+		}
 	}
+
 	FCompactPose() : AnimFrame(0), Processed(false)
 	{
 	}
@@ -41,12 +48,20 @@ public:
 	FCompactPose(int boneLength) : AnimFrame(0), Processed(false)
 	{
 		Bones.SetNum(boneLength);
+
+		for (int i = 0; i < Bones.Num(); ++i)
+		{
+			FPoseBone NewBone;
+			Bones[i] = NewBone;
+		}
 	}
+
+
 	void NormalizeRotations()
 	{
-		for (FPoseBone*& bone : Bones)
+		for (FPoseBone& bone : Bones)
 		{
-			bone->Transform.Rotation.Normalize();
+			bone.Transform.Rotation.Normalize();
 		}
 	}
 
@@ -56,9 +71,9 @@ public:
 
 		for (int32 Index = 0; Index < Bones.Num(); ++Index)
 		{
-			if (!Bones[Index]->IsValidKey) continue;
+			if (!Bones[Index].IsValidKey) continue;
 
-			FTransform Transform = Bones[Index]->Transform;
+			FTransform Transform = Bones[Index].Transform;
 			CQuat idek;
 			idek.X = Transform.Rotation.X;
 			idek.Y = Transform.Rotation.Y;
@@ -72,13 +87,13 @@ public:
 };
 
 
+
 class CAnimSet;
 
 class FAnimationRuntime
 {
 public:
-	//static TArray<FCompactPose> LoadRestAsPoses(CAnimSet* Anim);
-	//static TArray<FCompactPose> LoadAsPoses(CAnimSet* Anim, int32 RefFrame);
-	//static TArray<FCompactPose*> LoadAsPoses(const CAnimSet* Anim);
-	static const TArray<FCompactPose*>& LoadAsPoses(const CAnimSet* Anim);
+	static TArray<FCompactPose>& LoadRestAsPoses(USkeleton* Skel);
+	static const TArray<FCompactPose>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton, const int refFrame);
+	static const TArray<FCompactPose>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton);
 };

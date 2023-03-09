@@ -305,6 +305,8 @@ public:
 			delete Tracks[i];
 		}
 	}
+	CAnimSequence* ConvertAdditive(USkeleton* skeleton);
+
 };
 
 

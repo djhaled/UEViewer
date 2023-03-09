@@ -46,7 +46,6 @@ struct CVec3
 	{
 		return v[index];
 	}
-
 	// NOTE: for those functions which requires CVec3 -> float*, we can easily do it using CVec3.v field
 	// trivial setup functions
 	inline void Zero()
@@ -56,6 +55,10 @@ struct CVec3
 	inline void Set(float x, float y, float z)
 	{
 		v[0] = x; v[1] = y; v[2] = z;
+	}
+	inline float Size() const
+	{
+		return sqrt(GetLengthSq());
 	}
 	// simple math
 	inline void Negate()
@@ -101,6 +104,14 @@ struct CVec3
 
 	friend float dot(const CVec3&, const CVec3&);
 };
+// Define subtraction operator (-) for CVec3 type
+inline CVec3 operator-(const CVec3& a, const CVec3& b)
+{
+	CVec3 rt;
+	rt.Set(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+	//CVec3 rt = CVec3(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+	return rt;
+}
 
 
 inline bool operator==(const CVec3 &v1, const CVec3 &v2)
@@ -260,15 +271,15 @@ extern const CCoords identCoords;
 
 struct CQuat
 {
-	float	X, Y, Z, W;
+	float X, Y, Z, W;
 
 	inline void Set(float _x, float _y, float _z, float _w)
 	{
 		X = _x; Y = _y; Z = _z; W = _w;
 	}
 
-	void FromAxis(const CAxis &src);
-	void ToAxis(CAxis &dst) const;
+	void FromAxis(const CAxis& src);
+	void ToAxis(CAxis& dst) const;
 	float GetLength() const;
 
 	// Build a unit quaternion representing the rotation from v1 to v2. The input vectors need not be normalized.
@@ -290,8 +301,20 @@ struct CQuat
 		FNegate(W);
 	}
 	void Normalize();
-	void Mul(const CQuat &Q);
+	void Mul(const CQuat& Q);
+
+	// Define the * operator for multiplying quaternions
+	friend CQuat operator*(const CQuat& lhs, const CQuat& rhs)
+	{
+		CQuat result;
+		result.X = lhs.W * rhs.X + lhs.X * rhs.W + lhs.Y * rhs.Z - lhs.Z * rhs.Y;
+		result.Y = lhs.W * rhs.Y - lhs.X * rhs.Z + lhs.Y * rhs.W + lhs.Z * rhs.X;
+		result.Z = lhs.W * rhs.Z + lhs.X * rhs.Y - lhs.Y * rhs.X + lhs.Z * rhs.W;
+		result.W = lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z;
+		return result;
+	}
 };
+
 
 void Slerp(const CQuat &A, const CQuat &B, float Alpha, CQuat &dst);
 

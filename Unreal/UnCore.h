@@ -1625,7 +1625,10 @@ public:
 	~TArray()
 	{
 		// destruct all array items
-		if (!TTypeInfo<T>::IsPod) Destruct(0, DataCount);
+		if (!TTypeInfo<T>::IsPod)
+		{
+			Destruct(0, DataCount);
+		}
 	}
 	// data accessors
 

@@ -4,8 +4,9 @@
   "configurations": [
     {
       "type": "native",
-      "name": "No arguments",
-      "project": "umodel.exe"
+      "name": "No argumentsBK",
+      "project": "umodel.exe",
+      "args": ["@docs/cmdline.cfg"]
     },
     {
       "type": "native",

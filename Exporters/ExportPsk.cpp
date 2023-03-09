@@ -867,23 +867,18 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 
 	unguard;
 }
-CAnimSet* GetAdditive(const UAnimSequence4* additiveAnimSequence, const CAnimSet* tecoteco)
-{
-	USkeleton* additiveSkeleton = additiveAnimSequence->Skeleton;
-
-	UAnimSequence4* reference = additiveAnimSequence->RefPoseSeq;
-	USkeleton* referenceSkeleton = reference->Skeleton;
-	//const CAnimSet* additiveAnimSet = additiveSkeleton->ConvertAnims(additiveAnimSequence);
-	CAnimSequence* AddAnimSeq = tecoteco->Sequences[0];
-	CAnimSequence* AnimRef = tecoteco->Sequences[1];
-	AddAnimSeq->OriginalSequence = AnimRef->OriginalSequence;
-	const TArray<FCompactPose*>& AdditivePoses = FAnimationRuntime::LoadAsPoses(tecoteco);
 
 
-	return nullptr;
-}
 
-
+//CAnimSet* ConvertAnims(USkeleton* skeleton, UAnimSequence4* anim)
+//{
+//	CAnimSet* animSet = skeleton->ConvertToAnimSet();
+//	if (!anim) { return animSet; }
+//
+//	animSet->Sequences.Add(anim->ConvertSequence(skeleton));
+//
+//	return animSet;
+//}
 
 
 void ExportPsa(const CAnimSet* Anim)
@@ -892,13 +887,7 @@ void ExportPsa(const CAnimSet* Anim)
 
 	// Determine if CAnimSet will save animations as separate psa files, or all at once
 	const UObject* OriginalAnim = GetPrimaryAnimObject(Anim);
-	const UAnimSequence4* animSeq = static_cast<const UAnimSequence4*>(OriginalAnim);
-	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() > 1)
-	{
-		Anim = GetAdditive(animSeq,Anim);
-		//DoExportPsa(Anim, OriginalAnim);
-		return;
-	}
+	//UAnimSequence4* animSeq = const_cast<UAnimSequence4*>(static_cast<const UAnimSequence4*>(OriginalAnim));
 	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() == 1)
 	{
 		// Export all animations in a single file
