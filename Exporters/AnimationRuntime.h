@@ -29,21 +29,6 @@ public:
 		NewBone.Accumulated = Accumulated;
 		return NewBone;
 	}
-	CQuat ConvertFQuatToCquatV2(const FQuat& F)
-	{
-		CQuat C;
-		C.Set(F.X, F.Y, F.Z, F.W);
-		return C;
-	}
-	void  AccumulateWithAdditiveScale(FTransform atom, float weight)
-	{
-		Transform.Rotation = atom.Rotation * weight * Transform.Rotation;
-		Transform.Translation += atom.Translation * weight;
-		//FVector TesVec = FVector(1,1,1);
-		//FVector NewVec = TesVec + atom.Scale3D;
-		//Transform.Scale3D *= NewVec * weight;
-		Accumulated = true;
-	}
 };
 
 struct FCompactPose
