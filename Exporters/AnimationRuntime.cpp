@@ -36,14 +36,30 @@ const TArray<FCompactPose>& FAnimationRuntime::LoadAsPoses(const CAnimSequence* 
 
 void FAnimationRuntime::AccumulateLocalSpaceAdditivePoseInternal(FCompactPose basePose, FCompactPose additivePose, float weight)
 {
+	if (weight < 0.999989986419678)
+	{
+		return;
+	}
+
+	for (int index = 0; index < basePose.Bones.Num(); index++)
+	{
+		basePose.Bones[index].AccumulateWithAdditiveScale(additivePose.Bones[index].Transform, weight);
+	}
 }
 
 void FAnimationRuntime::ConvertMeshRotationPoseToLocalSpaceV2(FCompactPose pose)
 {
+	for (int boneIndex = pose.Bones.Num() - 1; boneIndex > 0; --boneIndex)
+	{
+		int parentIndex = pose.Bones[boneIndex].ParentIndex;
+		FQuat localSpaceRotation = pose.Bones[parentIndex].Transform.Rotation.Inverse() * pose.Bones[boneIndex].Transform.Rotation;
+		pose.Bones[boneIndex].Transform.Rotation = localSpaceRotation;
+	}
 }
 
 void FAnimationRuntime::AccumulateMeshSpaceRotationAdditiveToLocalPoseInternal(FCompactPose basePose, FCompactPose additivePose, float weight)
 {
+
 	ConvertPoseToMeshRotation(basePose);
 	AccumulateLocalSpaceAdditivePoseInternal(basePose, additivePose, weight);
 	ConvertMeshRotationPoseToLocalSpaceV2(basePose);

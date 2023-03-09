@@ -112,7 +112,33 @@ inline CVec3 operator-(const CVec3& a, const CVec3& b)
 	//CVec3 rt = CVec3(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
 	return rt;
 }
-
+inline CVec3 operator+(const CVec3& a, const CVec3& b)
+{
+	CVec3 rf;
+	rf.Set(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+	return rf;
+}
+inline CVec3 operator*(const CVec3& v, float s)
+{
+	CVec3 br;
+	br.Set(v.X * s, v.Y * s, v.Z * s);
+	return br;
+	//return CVec3(v.X * s, v.Y * s, v.Z * s);
+}
+inline CVec3 operator+=(CVec3& a, const CVec3& b)
+{
+	a.X += b.X;
+	a.Y += b.Y;
+	a.Z += b.Z;
+	return a;
+}
+inline CVec3 operator*=(CVec3& a, const CVec3& b)
+{
+	a.X *= b.X;
+	a.Y *= b.Y;
+	a.Z *= b.Z;
+	return a;
+}
 
 inline bool operator==(const CVec3 &v1, const CVec3 &v2)
 {
@@ -123,6 +149,7 @@ inline bool operator!=(const CVec3 &v1, const CVec3 &v2)
 {
 	return memcmp(&v1, &v2, sizeof(CVec3)) != 0;
 }
+
 
 inline void Lerp(const CVec3 &A, const CVec3 &B, float Alpha, CVec3 &dst)
 {
@@ -302,7 +329,12 @@ struct CQuat
 	}
 	void Normalize();
 	void Mul(const CQuat& Q);
-
+	friend CQuat operator*(const CQuat& q, const float& s)
+	{
+		CQuat ide;
+		ide.Set(q.X * s, q.Y * s, q.Z * s, q.W * s);
+		return ide;
+	}
 	// Define the * operator for multiplying quaternions
 	friend CQuat operator*(const CQuat& lhs, const CQuat& rhs)
 	{

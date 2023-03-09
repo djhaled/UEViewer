@@ -79,10 +79,10 @@ void appPrintProfiler(const char* label = NULL);
 
 extern char GRootDirectory[];
 
-void appSetRootDirectory(const char *dir, bool recurse = true);
+void appSetRootDirectory(const char* dir, bool recurse = true);
 // Set root directory from package file name
-void appSetRootDirectory2(const char *filename);
-const char *appGetRootDirectory();
+void appSetRootDirectory2(const char* filename);
+const char* appGetRootDirectory();
 
 // forwards
 class FString;
@@ -106,14 +106,14 @@ protected:
 	uint8		ExtensionOffset;					// Extension = ShortName+ExtensionOffset, points after '.'
 	CGameFileInfo* HashNext;						// used for fast search; computed from ShortFilename excluding extension
 
-	const char*	ShortFilename;						// without path, points to filename part of RelativeName
+	const char* ShortFilename;						// without path, points to filename part of RelativeName
 
 public:
 	FVirtualFileSystem* FileSystem;					// owning virtual file system (NULL for OS file system)
-	UnPackage*	Package;							// non-null when corresponding package is loaded
+	UnPackage* Package;							// non-null when corresponding package is loaded
 
 	int64		Size;								// file size, in bytes
-													//todo: always used as 32-bit value??
+	//todo: always used as 32-bit value??
 	int32		SizeInKb;							// file size, in kilobytes
 	int32		ExtraSizeInKb;						// size of additional non-package files (ubulk, uexp etc)
 	int32		IndexInVfs;							// index in VFS directory; 16 bits are not enough
@@ -135,7 +135,7 @@ public:
 	// Ext = NULL -> use any package extension
 	// Filename can contain extension, but should not contain path.
 	// This function is quite fast because it uses hash tables.
-	static const CGameFileInfo* Find(const char *Filename, int GameFolder = -1);
+	static const CGameFileInfo* Find(const char* Filename, int GameFolder = -1);
 
 	// Find all files with the same base file name (ignoring extension) and same directory as for
 	// this file. Files are filled into 'otherFiles' array, 'this' file is not included.
@@ -200,7 +200,7 @@ int appGetGameFolderIndex(const char* FolderName);
 int appGetGameFolderCount();
 
 typedef bool (*EnumGameFoldersCallback_t)(const FString&, int, void*);
-void appEnumGameFoldersWorker(EnumGameFoldersCallback_t, void *Param = NULL);
+void appEnumGameFoldersWorker(EnumGameFoldersCallback_t, void* Param = NULL);
 
 // Callback with number of files plus custom parameter
 template<typename T>
@@ -217,12 +217,12 @@ FORCEINLINE void appEnumGameFolders(bool (*Callback)(const FString&, int))
 
 // This function allows wildcard use in Filename. When wildcard is used, it iterates over all
 // found files and could be relatively slow.
-void appFindGameFiles(const char *Filename, TArray<const CGameFileInfo*>& Files);
+void appFindGameFiles(const char* Filename, TArray<const CGameFileInfo*>& Files);
 
-const char *appSkipRootDir(const char *Filename);
+const char* appSkipRootDir(const char* Filename);
 
 typedef bool (*EnumGameFilesCallback_t)(const CGameFileInfo*, void*);
-void appEnumGameFilesWorker(EnumGameFilesCallback_t, const char *Ext = NULL, void *Param = NULL);
+void appEnumGameFilesWorker(EnumGameFilesCallback_t, const char* Ext = NULL, void* Param = NULL);
 
 template<typename T>
 FORCEINLINE void appEnumGameFiles(bool (*Callback)(const CGameFileInfo*, T&), const char* Ext, T& Param)
@@ -242,7 +242,7 @@ FORCEINLINE void appEnumGameFiles(bool (*Callback)(const CGameFileInfo*), const 
 }
 
 #if UNREAL3
-extern const char *GStartupPackage;
+extern const char* GStartupPackage;
 #endif
 
 
@@ -255,34 +255,34 @@ const char* appStrdupPool(const char* str);
 class FName
 {
 public:
-	const char	*Str;
+	const char* Str;
 #if !USE_COMPACT_PACKAGE_STRUCTS
 	int32		Index;
-	#if UNREAL3 || UNREAL4
+#if UNREAL3 || UNREAL4
 	int32		ExtraIndex;
-	#endif
+#endif
 #endif // USE_COMPACT_PACKAGE_STRUCTS
 
 	FName()
-	:	Str("None")
+		: Str("None")
 #if !USE_COMPACT_PACKAGE_STRUCTS
-	,	Index(0)
-	#if UNREAL3 || UNREAL4
-	,	ExtraIndex(0)
-	#endif
+		, Index(0)
+#if UNREAL3 || UNREAL4
+		, ExtraIndex(0)
+#endif
 #endif // USE_COMPACT_PACKAGE_STRUCTS
 	{}
 
-	inline FName& operator=(const FName &Other) = default;
+	inline FName& operator=(const FName& Other) = default;
 
 	inline FName& operator=(const char* String)
 	{
 		Str = appStrdupPool(String);
 #if !USE_COMPACT_PACKAGE_STRUCTS
 		Index = 0;
-	#if UNREAL3 || UNREAL4
+#if UNREAL3 || UNREAL4
 		ExtraIndex = 0;
-	#endif
+#endif
 #endif // USE_COMPACT_PACKAGE_STRUCTS
 		return *this;
 	}
@@ -312,7 +312,7 @@ public:
 	{
 		return Str;
 	}
-	FORCEINLINE operator const char*() const
+	FORCEINLINE operator const char* () const
 	{
 		return Str;
 	}
@@ -328,7 +328,7 @@ class FCompactIndex
 {
 public:
 	int		Value;
-	friend FArchive& operator<<(FArchive &Ar, FCompactIndex &I);
+	friend FArchive& operator<<(FArchive& Ar, FCompactIndex& I);
 };
 
 #define AR_INDEX(intref)	(*(FCompactIndex*)&(intref))
@@ -343,165 +343,165 @@ public:
 
 enum EGame
 {
-	GAME_UNKNOWN   = 0,			// should be 0
+	GAME_UNKNOWN = 0,			// should be 0
 
-	GAME_UE1       = 0x0100000,
-		GAME_Undying,
+	GAME_UE1 = 0x0100000,
+	GAME_Undying,
 
-	GAME_UE2       = 0x0200000,
-		GAME_UT2,
-		GAME_Pariah,
-		GAME_SplinterCell,
-		GAME_SplinterCellConv,
-		GAME_Lineage2,
-		GAME_Exteel,
-		GAME_Ragnarok2,
-		GAME_RepCommando,
-		GAME_Loco,
-		GAME_BattleTerr,
-		GAME_UC1,				// note: not UE2X
-		GAME_XIII,
-		GAME_Vanguard,
-		GAME_AA2,
-		GAME_EOS,
+	GAME_UE2 = 0x0200000,
+	GAME_UT2,
+	GAME_Pariah,
+	GAME_SplinterCell,
+	GAME_SplinterCellConv,
+	GAME_Lineage2,
+	GAME_Exteel,
+	GAME_Ragnarok2,
+	GAME_RepCommando,
+	GAME_Loco,
+	GAME_BattleTerr,
+	GAME_UC1,				// note: not UE2X
+	GAME_XIII,
+	GAME_Vanguard,
+	GAME_AA2,
+	GAME_EOS,
 
 	GAME_VENGEANCE = 0x0210000,	// variant of UE2
-		GAME_Tribes3,
-		GAME_Swat4,				// not autodetected, overlaps with Tribes3
-		GAME_Bioshock,
+	GAME_Tribes3,
+	GAME_Swat4,				// not autodetected, overlaps with Tribes3
+	GAME_Bioshock,
 
-	GAME_LEAD      = 0x0220000,
+	GAME_LEAD = 0x0220000,
 
-	GAME_UE2X      = 0x0400000,
-		GAME_UC2,
+	GAME_UE2X = 0x0400000,
+	GAME_UC2,
 
-	GAME_UE3       = 0x0800000,
-		GAME_EndWar,
-		GAME_MassEffect,
-		GAME_MassEffect2,
-		GAME_MassEffect3,
-		GAME_MassEffectLE,
-		GAME_R6Vegas2,
-		GAME_MirrorEdge,
-		GAME_TLR,
-		GAME_Huxley,
-		GAME_Turok,
-		GAME_Fury,
-		GAME_XMen,
-		GAME_MagnaCarta,
-		GAME_ArmyOf2,
-		GAME_CrimeCraft,
-		GAME_50Cent,
-		GAME_AVA,
-		GAME_Frontlines,
-		GAME_Batman,
-		GAME_Batman2,
-		GAME_Batman3,
-		GAME_Batman4,
-		GAME_Borderlands,
-		GAME_AA3,
-		GAME_DarkVoid,
-		GAME_Legendary,
-		GAME_Tera,
-		GAME_BladeNSoul,
-		GAME_APB,
-		GAME_AlphaProtocol,
-		GAME_Transformers,
-		GAME_MortalOnline,
-		GAME_Enslaved,
-		GAME_MOHA,
-		GAME_MOH2010,
-		GAME_Berkanix,
-		GAME_DOH,
-		GAME_DCUniverse,
-		GAME_Bulletstorm,
-		GAME_Undertow,
-		GAME_Singularity,
-		GAME_Tron,
-		GAME_Hunted,
-		GAME_DND,
-		GAME_ShadowsDamned,
-		GAME_Argonauts,
-		GAME_SpecialForce2,
-		GAME_GunLegend,
-		GAME_TaoYuan,
-		GAME_Tribes4,
-		GAME_Dishonored,
-		GAME_Hawken,
-		GAME_Fable,
-		GAME_DmC,
-		GAME_PLA,
-		GAME_AliensCM,
-		GAME_GoWJ,
-		GAME_GoWU,
-		GAME_Bioshock3,
-		GAME_RememberMe,
-		GAME_MarvelHeroes,
-		GAME_LostPlanet3,
-		GAME_XcomB,
-		GAME_Xcom2,
-		GAME_Thief4,
-		GAME_Murdered,
-		GAME_SOV,
-		GAME_VEC,
-		GAME_Dust514,
-		GAME_Guilty,
-		GAME_Alice,
-		GAME_DunDef,
-		GAME_Gigantic,
-		GAME_MetroConflict,
-		GAME_Smite,
-		GAME_DevilsThird,
-		GAME_RocketLeague,
-		GAME_GRAV,
+	GAME_UE3 = 0x0800000,
+	GAME_EndWar,
+	GAME_MassEffect,
+	GAME_MassEffect2,
+	GAME_MassEffect3,
+	GAME_MassEffectLE,
+	GAME_R6Vegas2,
+	GAME_MirrorEdge,
+	GAME_TLR,
+	GAME_Huxley,
+	GAME_Turok,
+	GAME_Fury,
+	GAME_XMen,
+	GAME_MagnaCarta,
+	GAME_ArmyOf2,
+	GAME_CrimeCraft,
+	GAME_50Cent,
+	GAME_AVA,
+	GAME_Frontlines,
+	GAME_Batman,
+	GAME_Batman2,
+	GAME_Batman3,
+	GAME_Batman4,
+	GAME_Borderlands,
+	GAME_AA3,
+	GAME_DarkVoid,
+	GAME_Legendary,
+	GAME_Tera,
+	GAME_BladeNSoul,
+	GAME_APB,
+	GAME_AlphaProtocol,
+	GAME_Transformers,
+	GAME_MortalOnline,
+	GAME_Enslaved,
+	GAME_MOHA,
+	GAME_MOH2010,
+	GAME_Berkanix,
+	GAME_DOH,
+	GAME_DCUniverse,
+	GAME_Bulletstorm,
+	GAME_Undertow,
+	GAME_Singularity,
+	GAME_Tron,
+	GAME_Hunted,
+	GAME_DND,
+	GAME_ShadowsDamned,
+	GAME_Argonauts,
+	GAME_SpecialForce2,
+	GAME_GunLegend,
+	GAME_TaoYuan,
+	GAME_Tribes4,
+	GAME_Dishonored,
+	GAME_Hawken,
+	GAME_Fable,
+	GAME_DmC,
+	GAME_PLA,
+	GAME_AliensCM,
+	GAME_GoWJ,
+	GAME_GoWU,
+	GAME_Bioshock3,
+	GAME_RememberMe,
+	GAME_MarvelHeroes,
+	GAME_LostPlanet3,
+	GAME_XcomB,
+	GAME_Xcom2,
+	GAME_Thief4,
+	GAME_Murdered,
+	GAME_SOV,
+	GAME_VEC,
+	GAME_Dust514,
+	GAME_Guilty,
+	GAME_Alice,
+	GAME_DunDef,
+	GAME_Gigantic,
+	GAME_MetroConflict,
+	GAME_Smite,
+	GAME_DevilsThird,
+	GAME_RocketLeague,
+	GAME_GRAV,
 
-	GAME_MIDWAY3   = 0x0810000,	// variant of UE3
-		GAME_A51,
-		GAME_Wheelman,
-		GAME_MK,
-		GAME_Strangle,
-		GAME_TNA,
+	GAME_MIDWAY3 = 0x0810000,	// variant of UE3
+	GAME_A51,
+	GAME_Wheelman,
+	GAME_MK,
+	GAME_Strangle,
+	GAME_TNA,
 
-	GAME_UE4_BASE  = 0x1000000,
-		// bytes: 01.00.0N.NX : 01=UE4, 00=masked by GAME_ENGINE, NN=UE4 subversion, X=game (4 bits, 0=base engine)
-		// Add custom UE4 game engines here
-		// 4.5
-		GAME_Ark = GAME_UE4(5)+1,
-		// 4.6
-		GAME_FableLegends = GAME_UE4(6)+1,
-		// 4.8
-		GAME_HIT = GAME_UE4(8)+1,
-		// 4.10
-		GAME_SeaOfThieves = GAME_UE4(10)+1,
-		// 4.11
-		GAME_Gears4 = GAME_UE4(11)+1,
-		GAME_DaysGone = GAME_UE4(11)+2,
-		// 4.13
-		GAME_Lawbreakers = GAME_UE4(13)+1,
-		GAME_StateOfDecay2 = GAME_UE4(13)+2,
-		// 4.14
-		GAME_Tekken7 = GAME_UE4(14)+2,
-		// 4.16
-		GAME_NGB = GAME_UE4(16)+1,
-		GAME_UT4 = GAME_UE4(16)+2,
-		// 4.17
-		GAME_LIS2 = GAME_UE4(17)+1,
-		GAME_KH3 = GAME_UE4(17)+2, // 17..18 (16 - crash anim, 19 - new SkelMesh format, not matching)
-		// 4.18
-		GAME_AscOne = GAME_UE4(18)+1,
-		// 4.19
-		GAME_Paragon = GAME_UE4(19)+1,
-		// 4.20
-		GAME_Borderlands3 = GAME_UE4(20)+1,
-		// 4.21
-		GAME_Jedi = GAME_UE4(21)+1,
-		// 4.25
-		GAME_UE4_25_Plus = GAME_UE4(25)+1,
-		// 4.26
-		GAME_Dauntless = GAME_UE4(26)+1,
-		GAME_Valorant = GAME_UE4(26)+2,
+	GAME_UE4_BASE = 0x1000000,
+	// bytes: 01.00.0N.NX : 01=UE4, 00=masked by GAME_ENGINE, NN=UE4 subversion, X=game (4 bits, 0=base engine)
+	// Add custom UE4 game engines here
+	// 4.5
+	GAME_Ark = GAME_UE4(5) + 1,
+	// 4.6
+	GAME_FableLegends = GAME_UE4(6) + 1,
+	// 4.8
+	GAME_HIT = GAME_UE4(8) + 1,
+	// 4.10
+	GAME_SeaOfThieves = GAME_UE4(10) + 1,
+	// 4.11
+	GAME_Gears4 = GAME_UE4(11) + 1,
+	GAME_DaysGone = GAME_UE4(11) + 2,
+	// 4.13
+	GAME_Lawbreakers = GAME_UE4(13) + 1,
+	GAME_StateOfDecay2 = GAME_UE4(13) + 2,
+	// 4.14
+	GAME_Tekken7 = GAME_UE4(14) + 2,
+	// 4.16
+	GAME_NGB = GAME_UE4(16) + 1,
+	GAME_UT4 = GAME_UE4(16) + 2,
+	// 4.17
+	GAME_LIS2 = GAME_UE4(17) + 1,
+	GAME_KH3 = GAME_UE4(17) + 2, // 17..18 (16 - crash anim, 19 - new SkelMesh format, not matching)
+	// 4.18
+	GAME_AscOne = GAME_UE4(18) + 1,
+	// 4.19
+	GAME_Paragon = GAME_UE4(19) + 1,
+	// 4.20
+	GAME_Borderlands3 = GAME_UE4(20) + 1,
+	// 4.21
+	GAME_Jedi = GAME_UE4(21) + 1,
+	// 4.25
+	GAME_UE4_25_Plus = GAME_UE4(25) + 1,
+	// 4.26
+	GAME_Dauntless = GAME_UE4(26) + 1,
+	GAME_Valorant = GAME_UE4(26) + 2,
 
-	GAME_ENGINE    = 0xFFF0000	// mask for game engine
+	GAME_ENGINE = 0xFFF0000	// mask for game engine
 };
 
 #define LATEST_SUPPORTED_UE4_VERSION		27		// UE4.XX
@@ -545,27 +545,27 @@ public:
 	int		Platform;			// EPlatform
 
 	FArchive()
-	:	ArPos(0)
-	,	ArStopper(0)
-	,	ArVer(100000)			//?? something large
-	,	ArLicenseeVer(0)
-	,	IsLoading(true)
-	,	ReverseBytes(false)
-	,	Game(GAME_UNKNOWN)
-	,	Platform(PLATFORM_PC)
+		: ArPos(0)
+		, ArStopper(0)
+		, ArVer(100000)			//?? something large
+		, ArLicenseeVer(0)
+		, IsLoading(true)
+		, ReverseBytes(false)
+		, Game(GAME_UNKNOWN)
+		, Platform(PLATFORM_PC)
 	{}
 
 	virtual ~FArchive()
 	{}
 
-	void SetupFrom(const FArchive &Other)
+	void SetupFrom(const FArchive& Other)
 	{
-		ArVer         = Other.ArVer;
+		ArVer = Other.ArVer;
 		ArLicenseeVer = Other.ArLicenseeVer;
-		ReverseBytes  = Other.ReverseBytes;
-		IsLoading     = Other.IsLoading;
-		Game          = Other.Game;
-		Platform      = Other.Platform;
+		ReverseBytes = Other.ReverseBytes;
+		IsLoading = Other.IsLoading;
+		Game = Other.Game;
+		Platform = Other.Platform;
 	}
 
 	// Information about game and engine this archive belongs to.
@@ -631,8 +631,8 @@ public:
 
 	// Serialization functions.
 
-	virtual void Serialize(void *data, int size) = 0;
-	void ByteOrderSerialize(void *data, int size);
+	virtual void Serialize(void* data, int size) = 0;
+	void ByteOrderSerialize(void* data, int size);
 
 	// "Stopper" is used to check for overrun serialization.
 	// Note: there's no 64-bit "stopper" - large files are used only as containers for smaller
@@ -670,18 +670,18 @@ public:
 
 	// Dummy implementation of Unreal type serialization
 
-	virtual FArchive& operator<<(FName &/*N*/)
+	virtual FArchive& operator<<(FName&/*N*/)
 	{
 		return *this;
 	}
-	virtual FArchive& operator<<(UObject *&/*Obj*/)
+	virtual FArchive& operator<<(UObject*&/*Obj*/)
 	{
 		return *this;
 	}
 
 	// Use FArchive as a text stream
 
-	void Printf(const char *fmt, ...);
+	void Printf(const char* fmt, ...);
 
 	// Typeinfo
 
@@ -740,54 +740,54 @@ private:
 
 
 // Booleans in UE are serialized as int32
-FORCEINLINE FArchive& operator<<(FArchive &Ar, bool &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, bool& B)
 {
 	int32 b32 = B;
 	Ar.Serialize(&b32, 4);
 	if (Ar.IsLoading) B = (b32 != 0);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, char &B) // int8
+FORCEINLINE FArchive& operator<<(FArchive& Ar, char& B) // int8
 {
 	Ar.Serialize(&B, 1);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, byte &B) // uint8
+FORCEINLINE FArchive& operator<<(FArchive& Ar, byte& B) // uint8
 {
 	Ar.Serialize(&B, 1);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, int16 &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, int16& B)
 {
 	Ar.ByteOrderSerialize(&B, 2);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, uint16 &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, uint16& B)
 {
 	Ar.ByteOrderSerialize(&B, 2);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, int32 &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, int32& B)
 {
 	Ar.ByteOrderSerialize(&B, 4);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, uint32 &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, uint32& B)
 {
 	Ar.ByteOrderSerialize(&B, 4);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, int64 &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, int64& B)
 {
 	Ar.ByteOrderSerialize(&B, 8);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, uint64 &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, uint64& B)
 {
 	Ar.ByteOrderSerialize(&B, 8);
 	return Ar;
 }
-FORCEINLINE FArchive& operator<<(FArchive &Ar, float &B)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, float& B)
 {
 	Ar.ByteOrderSerialize(&B, 4);
 	return Ar;
@@ -806,7 +806,7 @@ public:
 		appError("FPrintfArchive::Seek");
 	}
 
-	virtual void Serialize(void *data, int size)
+	virtual void Serialize(void* data, int size)
 	{
 		appPrintf("%s", data);
 	}
@@ -830,11 +830,11 @@ class FFileArchive : public FArchive
 {
 	DECLARE_ARCHIVE(FFileArchive, FArchive);
 public:
-	FFileArchive(const char *Filename, EFileArchiveOptions InOptions);
+	FFileArchive(const char* Filename, EFileArchiveOptions InOptions);
 	virtual ~FFileArchive();
 
 	virtual int GetFileSize() const;
-//	virtual int64 GetFileSize64() const; -- implemented in derived classes
+	//	virtual int64 GetFileSize64() const; -- implemented in derived classes
 
 	virtual bool IsOpen() const;
 	virtual void Close();
@@ -845,12 +845,12 @@ public:
 	}
 
 protected:
-	FILE		*f;
+	FILE* f;
 	EFileArchiveOptions Options;
-	const char	*FullName;		// allocated with appStrdup
-	const char	*ShortName;		// points to FullName[N]
+	const char* FullName;		// allocated with appStrdup
+	const char* ShortName;		// points to FullName[N]
 
-	byte*		Buffer;
+	byte* Buffer;
 	int			BufferSize;
 	int64		BufferPos;		// position of Buffer in file
 	int64		FilePos;		// where 'f' position points to (when reading, it usually equals to 'BufferPos + BufferSize')
@@ -875,10 +875,10 @@ class FFileReader : public FFileArchive
 {
 	DECLARE_ARCHIVE(FFileReader, FFileArchive);
 public:
-	FFileReader(const char *Filename, EFileArchiveOptions InOptions = EFileArchiveOptions::Default);
+	FFileReader(const char* Filename, EFileArchiveOptions InOptions = EFileArchiveOptions::Default);
 	virtual ~FFileReader();
 
-	virtual void Serialize(void *data, int size);
+	virtual void Serialize(void* data, int size);
 	virtual bool Open();
 	virtual void Seek(int Pos);
 	virtual void Seek64(int64 Pos);
@@ -899,10 +899,10 @@ class FFileWriter : public FFileArchive
 {
 	DECLARE_ARCHIVE(FFileWriter, FFileArchive);
 public:
-	FFileWriter(const char *Filename, EFileArchiveOptions Options = EFileArchiveOptions::Default);
+	FFileWriter(const char* Filename, EFileArchiveOptions Options = EFileArchiveOptions::Default);
 	virtual ~FFileWriter();
 
-	virtual void Serialize(void *data, int size);
+	virtual void Serialize(void* data, int size);
 	virtual bool Open();
 	virtual void Close();
 	virtual void Seek(int Pos);
@@ -927,12 +927,12 @@ class FReaderWrapper : public FArchive
 {
 	DECLARE_ARCHIVE(FReaderWrapper, FArchive);
 public:
-	FArchive	*Reader;
+	FArchive* Reader;
 	int			ArPosOffset;
 
-	FReaderWrapper(FArchive *File, int Offset = 0)
-	:	Reader(File)
-	,	ArPosOffset(Offset)
+	FReaderWrapper(FArchive* File, int Offset = 0)
+		: Reader(File)
+		, ArPosOffset(Offset)
 	{}
 	virtual ~FReaderWrapper()
 	{
@@ -954,7 +954,7 @@ public:
 	{
 		return Reader->GetFileSize() - ArPosOffset;
 	}
-	virtual void Serialize(void *data, int size)
+	virtual void Serialize(void* data, int size)
 	{
 		Reader->Serialize(data, size);
 	}
@@ -985,9 +985,9 @@ class FMemReader : public FArchive
 {
 	DECLARE_ARCHIVE(FMemReader, FArchive);
 public:
-	FMemReader(const void *data, int size)
-	:	DataPtr((const byte*)data)
-	,	DataSize(size)
+	FMemReader(const void* data, int size)
+		: DataPtr((const byte*)data)
+		, DataSize(size)
 	{
 		if (!data) appError("FMemReader constructed with NULL data");
 		IsLoading = true;
@@ -1007,7 +1007,7 @@ public:
 		return ArPos >= DataSize;
 	}
 
-	virtual void Serialize(void *data, int size)
+	virtual void Serialize(void* data, int size)
 	{
 		PROFILE_IF(size >= 1024);
 		guard(FMemReader::Serialize);
@@ -1029,7 +1029,7 @@ public:
 	}
 
 protected:
-	const byte *DataPtr;
+	const byte* DataPtr;
 	int		DataSize;
 };
 
@@ -1044,7 +1044,7 @@ public:
 
 	virtual bool IsEof() const;
 
-	virtual void Serialize(void *data, int size);
+	virtual void Serialize(void* data, int size);
 
 	virtual int GetFileSize() const;
 
@@ -1064,7 +1064,7 @@ class FDummyArchive : public FArchive
 public:
 	virtual void Seek(int Pos)
 	{}
-	virtual void Serialize(void *data, int size)
+	virtual void Serialize(void* data, int size)
 	{}
 };
 
@@ -1074,7 +1074,7 @@ public:
 	Ar.Seek(Ar.GetStopper());
 
 // research helper
-inline void DUMP_ARC_BYTES(FArchive &Ar, int NumBytes, const char* Label = NULL)
+inline void DUMP_ARC_BYTES(FArchive& Ar, int NumBytes, const char* Label = NULL)
 {
 	guard(DUMP_ARC_BYTES);
 	if (Label) appPrintf("%s:", Label);
@@ -1082,7 +1082,7 @@ inline void DUMP_ARC_BYTES(FArchive &Ar, int NumBytes, const char* Label = NULL)
 	for (int i = 0; i < NumBytes; i++)
 	{
 		if (Ar.IsStopper() || Ar.IsEof()) break;
-		if (!(i & 31)) appPrintf("\n%06X :", OldPos+i);
+		if (!(i & 31)) appPrintf("\n%06X :", OldPos + i);
 		if (!(i & 3)) appPrintf(" ");
 		byte b;
 		Ar << b;
@@ -1108,7 +1108,7 @@ inline void DUMP_MEM_BYTES(const void* Data, int NumBytes, const char* Label = N
 
 
 // Reverse byte order for data array, inplace
-void appReverseBytes(void *Block, int NumItems, int ItemSize);
+void appReverseBytes(void* Block, int NumItems, int ItemSize);
 
 
 /*-----------------------------------------------------------------------------
@@ -1156,7 +1156,7 @@ struct FVector
 		X *= value; Y *= value; Z *= value;
 	}
 
-	friend FArchive& operator<<(FArchive &Ar, FVector &V)
+	friend FArchive& operator<<(FArchive& Ar, FVector& V)
 	{
 		Ar << V.X << V.Y << V.Z;
 #if ENDWAR
@@ -1165,13 +1165,33 @@ struct FVector
 #endif
 		return Ar;
 	}
+	inline FVector operator*(float s)
+	{
+		FVector br;
+		br.Set(X * s, Y * s, Z * s);
+		return br;
+	}
+	FVector& FVector::operator+=(const FVector& b)
+	{
+		X += b.X;
+		Y += b.Y;
+		Z += b.Z;
+		return *this;
+	}
+	inline FVector operator*=(FVector f)
+	{
+		X *= f.X;
+		Y *= f.Y;
+		Z *= f.Z;
+		return *this;
+	}
 };
 
 struct FVector4
 {
 	float	X, Y, Z, W;
 
-	friend FArchive& operator<<(FArchive &Ar, FVector4 &V)
+	friend FArchive& operator<<(FArchive& Ar, FVector4& V)
 	{
 		return Ar << V.X << V.Y << V.Z << V.W;
 	}
@@ -1179,18 +1199,18 @@ struct FVector4
 
 #if 1
 
-FORCEINLINE bool operator==(const FVector &V1, const FVector &V2)
+FORCEINLINE bool operator==(const FVector& V1, const FVector& V2)
 {
 	return V1.X == V2.X && V1.Y == V2.Y && V1.Z == V2.Z;
 }
 
 #else
 
-FORCEINLINE bool operator==(const FVector &V1, const FVector &V2)
+FORCEINLINE bool operator==(const FVector& V1, const FVector& V2)
 {
 	const int* p1 = (int*)&V1;
 	const int* p2 = (int*)&V2;
-	return ( (p1[0] ^ p2[0]) | (p1[1] ^ p2[1]) | (p1[2] ^ p2[2]) ) == 0;
+	return ((p1[0] ^ p2[0]) | (p1[1] ^ p2[1]) | (p1[2] ^ p2[2])) == 0;
 }
 
 #endif
@@ -1206,7 +1226,7 @@ struct FRotator
 		Pitch = _Pitch; Yaw = _Yaw; Roll = _Roll;
 	}
 
-	friend FArchive& operator<<(FArchive &Ar, FRotator &R)
+	friend FArchive& operator<<(FArchive& Ar, FRotator& R)
 	{
 		Ar << R.Pitch << R.Yaw << R.Roll;
 #if TNA_IMPACT
@@ -1214,8 +1234,8 @@ struct FRotator
 		{
 			// WWE All Stars: this game has strange FRotator values; found formulas below experimentally
 			R.Pitch = R.Pitch / 65536;
-			R.Yaw   = R.Yaw   / 65536 - 692;
-			R.Roll  = R.Roll  / 65536 - 692;
+			R.Yaw = R.Yaw / 65536 - 692;
+			R.Roll = R.Roll / 65536 - 692;
 		}
 #endif // TNA_IMPACT
 		return Ar;
@@ -1234,7 +1254,7 @@ struct FRotator4
 		Pitch = _Pitch; Yaw = _Yaw; Roll = _Roll;
 	}
 
-	friend FArchive& operator<<(FArchive &Ar, FRotator4 &R)
+	friend FArchive& operator<<(FArchive& Ar, FRotator4& R)
 	{
 		Ar << R.Pitch << R.Yaw << R.Roll;
 		return Ar;
@@ -1251,6 +1271,16 @@ struct FQuat
 	{
 		X = _X; Y = _Y; Z = _Z; W = _W;
 	}
+	//float THRESH_QUAT_NORMALIZED = 0.0001f; // You can adjust this value as needed
+	bool IsNormalized() const
+	{
+		return fabs(1.0f - SizeSquared()) < 0.0001f;
+	}
+
+	float SizeSquared() const
+	{
+		return X * X + Y * Y + Z * Z + W * W;
+	}
 	void Normalize()
 	{
 		const float Scale = 1.0f / sqrt(X * X + Y * Y + Z * Z + W * W);
@@ -1259,19 +1289,44 @@ struct FQuat
 		Z *= Scale;
 		W *= Scale;
 	}
+	FQuat Inverse() const
+	{
+		if (IsNormalized())
+		{
+			//return FQuat(-X, -Y, -Z, W);
+			FQuat tt;
+			tt.Set(-X, -Y, -Z, W);
+			return tt;
+		}
+	}
 	friend FArchive& operator<<(FArchive& Ar, FQuat& F)
 	{
 		return Ar << F.X << F.Y << F.Z << F.W;
 	}
-	FQuat operator*(const FQuat& Other) const
+	friend FQuat operator*(const FQuat& lhs, const FQuat& rhs)
 	{
-		FQuat Result;
-		Result.X = W * Other.X + X * Other.W + Y * Other.Z - Z * Other.Y;
-		Result.Y = W * Other.Y + Y * Other.W + Z * Other.X - X * Other.Z;
-		Result.Z = W * Other.Z + Z * Other.W + X * Other.Y - Y * Other.X;
-		Result.W = W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z;
-		return Result;
+		FQuat result;
+		result.X = lhs.W * rhs.X + lhs.X * rhs.W + lhs.Y * rhs.Z - lhs.Z * rhs.Y;
+		result.Y = lhs.W * rhs.Y - lhs.X * rhs.Z + lhs.Y * rhs.W + lhs.Z * rhs.X;
+		result.Z = lhs.W * rhs.Z + lhs.X * rhs.Y - lhs.Y * rhs.X + lhs.Z * rhs.W;
+		result.W = lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z;
+		return result;
 	}
+	friend FQuat operator*(const FQuat& q, const float& s)
+	{
+		FQuat ide;
+		ide.Set(q.X * s, q.Y * s, q.Z * s, q.W * s);
+		return ide;
+	}
+	//FQuat operator*(const FQuat& Other) const
+	//{
+	//	FQuat Result;
+	//	Result.X = W * Other.X + X * Other.W + Y * Other.Z - Z * Other.Y;
+	//	Result.Y = W * Other.Y + Y * Other.W + Z * Other.X - X * Other.Z;
+	//	Result.Z = W * Other.Z + Z * Other.W + X * Other.Y - Y * Other.X;
+	//	Result.W = W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z;
+	//	return Result;
+	//}
 };
 
 
@@ -1283,7 +1338,7 @@ struct FCoords
 	FVector	YAxis;
 	FVector	ZAxis;
 
-	friend FArchive& operator<<(FArchive &Ar, FCoords &F)
+	friend FArchive& operator<<(FArchive& Ar, FCoords& F)
 	{
 		return Ar << F.Origin << F.XAxis << F.YAxis << F.ZAxis;
 	}
@@ -1296,7 +1351,7 @@ struct FBox
 	FVector	Max;
 	byte	IsValid;
 
-	friend FArchive& operator<<(FArchive &Ar, FBox &Box)
+	friend FArchive& operator<<(FArchive& Ar, FBox& Box)
 	{
 #if UC2
 		if (Ar.Engine() == GAME_UE2X && Ar.ArVer >= 146)
@@ -1311,7 +1366,7 @@ struct FSphere : public FVector
 {
 	float	R;
 
-	friend FArchive& operator<<(FArchive &Ar, FSphere &S)
+	friend FArchive& operator<<(FArchive& Ar, FSphere& S)
 	{
 		Ar << (FVector&)S;
 		if (Ar.ArVer >= 61)
@@ -1325,7 +1380,7 @@ struct FPlane : public FVector
 {
 	float	W;
 
-	friend FArchive& operator<<(FArchive &Ar, FPlane &S)
+	friend FArchive& operator<<(FArchive& Ar, FPlane& S)
 	{
 		return Ar << (FVector&)S << S.W;
 	};
@@ -1339,7 +1394,7 @@ struct FMatrix
 	FPlane	ZPlane;
 	FPlane	WPlane;
 
-	friend FArchive& operator<<(FArchive &Ar, FMatrix &F)
+	friend FArchive& operator<<(FArchive& Ar, FMatrix& F)
 	{
 		return Ar << F.XPlane << F.YPlane << F.ZPlane << F.WPlane;
 	}
@@ -1354,7 +1409,7 @@ public:
 	byte	SheerAxis;	// ESheerAxis
 
 	// Serializer.
-	friend FArchive& operator<<(FArchive &Ar, FScale &S)
+	friend FArchive& operator<<(FArchive& Ar, FScale& S)
 	{
 		return Ar << S.Scale << S.SheerRate << S.SheerAxis;
 	}
@@ -1371,7 +1426,7 @@ struct FLinearColor
 		R = _R; G = _G; B = _B; A = _A;
 	}
 
-	friend FArchive& operator<<(FArchive &Ar, FLinearColor &C)
+	friend FArchive& operator<<(FArchive& Ar, FLinearColor& C)
 	{
 		return Ar << C.R << C.G << C.B << C.A;
 	}
@@ -1383,7 +1438,7 @@ struct FBoxSphereBounds
 	FVector	BoxExtent;
 	float	SphereRadius;
 
-	friend FArchive& operator<<(FArchive &Ar, FBoxSphereBounds &B)
+	friend FArchive& operator<<(FArchive& Ar, FBoxSphereBounds& B)
 	{
 		return Ar << B.Origin << B.BoxExtent << B.SphereRadius;
 	}
@@ -1396,7 +1451,7 @@ struct FIntPoint
 {
 	int		X, Y;
 
-	friend FArchive& operator<<(FArchive &Ar, FIntPoint &V)
+	friend FArchive& operator<<(FArchive& Ar, FIntPoint& V)
 	{
 		return Ar << V.X << V.Y;
 	}
@@ -1406,7 +1461,7 @@ struct FIntVector
 {
 	int		X, Y, Z;
 
-	friend FArchive& operator<<(FArchive &Ar, FIntVector &V)
+	friend FArchive& operator<<(FArchive& Ar, FIntVector& V)
 	{
 		return Ar << V.X << V.Y << V.Z;
 	}
@@ -1416,7 +1471,7 @@ struct FVector2D
 {
 	float	X, Y;
 
-	friend FArchive& operator<<(FArchive &Ar, FVector2D &V)
+	friend FArchive& operator<<(FArchive& Ar, FVector2D& V)
 	{
 		return Ar << V.X << V.Y;
 	}
@@ -1428,7 +1483,7 @@ struct FTransform
 	FVector	Translation;
 	FVector	Scale3D;
 
-	friend FArchive& operator<<(FArchive &Ar, FTransform &T)
+	friend FArchive& operator<<(FArchive& Ar, FTransform& T)
 	{
 		return Ar << T.Rotation << T.Translation << T.Scale3D;
 	}
@@ -1448,10 +1503,10 @@ template<typename T>
 struct TTypeInfo
 {
 	enum { FieldSize = sizeof(T) };
-	enum { NumFields = 1         };
-	enum { IsSimpleType = 0      };		// type consists of NumFields fields of integral type, sizeof(type) == FieldSize
-	enum { IsRawType = 0         };		// type's on-disk layout exactly matches in-memory layout
-	enum { IsPod = IS_POD(T)     };		// type has no constructor/destructor
+	enum { NumFields = 1 };
+	enum { IsSimpleType = 0 };		// type consists of NumFields fields of integral type, sizeof(type) == FieldSize
+	enum { IsRawType = 0 };		// type's on-disk layout exactly matches in-memory layout
+	enum { IsPod = IS_POD(T) };		// type has no constructor/destructor
 };
 
 // Declare type, consists from fields of the same type length
@@ -1494,28 +1549,28 @@ template<> struct TTypeInfo<Type>			\
 
 
 // Declare fundamental types
-SIMPLE_TYPE(bool,     bool)
-SIMPLE_TYPE(byte,     byte)
-SIMPLE_TYPE(char,     char)
-SIMPLE_TYPE(int16,    int16)
-SIMPLE_TYPE(uint16,   uint16)
-SIMPLE_TYPE(int32,    int32)
-SIMPLE_TYPE(uint32,   uint32)
-SIMPLE_TYPE(float,    float)
-SIMPLE_TYPE(int64,    int64)
-SIMPLE_TYPE(uint64,   uint64)
+SIMPLE_TYPE(bool, bool)
+SIMPLE_TYPE(byte, byte)
+SIMPLE_TYPE(char, char)
+SIMPLE_TYPE(int16, int16)
+SIMPLE_TYPE(uint16, uint16)
+SIMPLE_TYPE(int32, int32)
+SIMPLE_TYPE(uint32, uint32)
+SIMPLE_TYPE(float, float)
+SIMPLE_TYPE(int64, int64)
+SIMPLE_TYPE(uint64, uint64)
 
 // Aggregates
-SIMPLE_TYPE(FVector,  float)
+SIMPLE_TYPE(FVector, float)
 SIMPLE_TYPE(FVector4, float)
-SIMPLE_TYPE(FQuat,    float)
-SIMPLE_TYPE(FCoords,  float)
+SIMPLE_TYPE(FQuat, float)
+SIMPLE_TYPE(FCoords, float)
 
 #if UNREAL4
 
-SIMPLE_TYPE(FIntPoint,  int)
+SIMPLE_TYPE(FIntPoint, int)
 SIMPLE_TYPE(FIntVector, int)
-SIMPLE_TYPE(FVector2D,  float)
+SIMPLE_TYPE(FVector2D, float)
 SIMPLE_TYPE(FTransform, float)
 
 #endif // UNREAL4
@@ -1534,26 +1589,26 @@ SIMPLE_TYPE(FTransform, float)
  *	  appMalloc/appFree calls to allocate/release memory.
  */
 
-class FArray
+	class FArray
 {
 	friend struct CTypeInfo;
 	template<int N> friend class FStaticString;
 
 public:
 	FORCEINLINE FArray()
-	:	DataCount(0)
-	,	MaxCount(0)
-	,	DataPtr(NULL)
+		: DataCount(0)
+		, MaxCount(0)
+		, DataPtr(NULL)
 	{}
 	~FArray();
 
 	void MoveData(FArray& Other, int elementSize);
 
-	FORCEINLINE void *GetData()
+	FORCEINLINE void* GetData()
 	{
 		return DataPtr;
 	}
-	FORCEINLINE const void *GetData() const
+	FORCEINLINE const void* GetData() const
 	{
 		return DataPtr;
 	}
@@ -1570,10 +1625,10 @@ public:
 		return unsigned(index) < DataCount; // this will handle negative values as well
 	}
 
-	void RawCopy(const FArray &Src, int elementSize);
+	void RawCopy(const FArray& Src, int elementSize);
 
 protected:
-	void	*DataPtr;
+	void* DataPtr;
 	int		DataCount;
 	int		MaxCount;
 
@@ -1600,9 +1655,9 @@ protected:
 	void* GetItem(int index, int elementSize) const;
 
 	// serializers
-	FArchive& Serialize(FArchive &Ar, void (*Serializer)(FArchive&, void*), int elementSize);
-	FArchive& SerializeSimple(FArchive &Ar, int NumFields, int FieldSize);
-	FArchive& SerializeRaw(FArchive &Ar, void (*Serializer)(FArchive&, void*), int elementSize);
+	FArchive& Serialize(FArchive& Ar, void (*Serializer)(FArchive&, void*), int elementSize);
+	FArchive& SerializeSimple(FArchive& Ar, int NumFields, int FieldSize);
+	FArchive& SerializeRaw(FArchive& Ar, void (*Serializer)(FArchive&, void*), int elementSize);
 };
 
 #if DECLARE_VIEWER_PROPS
@@ -1610,9 +1665,9 @@ protected:
 #endif
 
 
-FArchive& SerializeLazyArray(FArchive &Ar, FArray &Array, FArchive& (*Serializer)(FArchive&, void*));
+FArchive& SerializeLazyArray(FArchive& Ar, FArray& Array, FArchive& (*Serializer)(FArchive&, void*));
 #if UNREAL3
-FArchive& SerializeBulkArray(FArchive &Ar, FArray &Array, FArchive& (*Serializer)(FArchive&, void*));
+FArchive& SerializeBulkArray(FArchive& Ar, FArray& Array, FArchive& (*Serializer)(FArchive&, void*));
 #endif
 
 
@@ -1629,7 +1684,7 @@ class TArray : public FArray
 	friend class FString; // for rvalue reference
 public:
 	TArray()
-	:	FArray()
+		: FArray()
 	{}
 	~TArray()
 	{
@@ -1850,7 +1905,7 @@ public:
 	int FindItem(const T& item, int startIndex = 0) const
 	{
 #if 1
-		const T *P;
+		const T* P;
 		int i;
 		for (i = startIndex, P = (const T*)DataPtr + startIndex; i < DataCount; i++, P++)
 			if (*P == item)
@@ -1904,10 +1959,10 @@ public:
 	}
 
 	// Ranged for support
-	FORCEINLINE friend T*       begin(      TArray& A) { return (T*) A.DataPtr; }
-	FORCEINLINE friend const T* begin(const TArray& A) { return (const T*) A.DataPtr; }
-	FORCEINLINE friend T*       end  (      TArray& A) { return (T*) A.DataPtr + A.DataCount; }
-	FORCEINLINE friend const T* end  (const TArray& A) { return (const T*) A.DataPtr + A.DataCount; }
+	FORCEINLINE friend T* begin(TArray& A) { return (T*)A.DataPtr; }
+	FORCEINLINE friend const T* begin(const TArray& A) { return (const T*)A.DataPtr; }
+	FORCEINLINE friend T* end(TArray& A) { return (T*)A.DataPtr + A.DataCount; }
+	FORCEINLINE friend const T* end(const TArray& A) { return (const T*)A.DataPtr + A.DataCount; }
 
 	// Declare TArray serializer as "fiend" (part 2)
 	friend FArchive& operator<< <>(FArchive& Ar, TArray& A);
@@ -1920,18 +1975,18 @@ public:
 	// Note: there is no reading optimization performed here (in umodel).
 	FORCEINLINE void BulkSerialize(FArchive& Ar)
 	{
-	#if DO_GUARD_MAX
+#if DO_GUARD_MAX
 		guardfunc;
-	#endif
+#endif
 		SerializeBulkArray(Ar, *this, SerializeArray);
-	#if DO_GUARD_MAX
+#if DO_GUARD_MAX
 		unguard;
-	#endif
+#endif
 	}
 #endif // UNREAL3
 
 	// serializer helper; used from 'operator<<(FArchive, TArray<>)' only
-	static void SerializeItem(FArchive &Ar, void *item)
+	static void SerializeItem(FArchive& Ar, void* item)
 	{
 		if (!TTypeInfo<T>::IsPod && Ar.IsLoading)
 			new (item) T;		// construct item before reading
@@ -1955,13 +2010,13 @@ public:
 	{
 		if (!TTypeInfo<T>::IsPod && Ar.IsLoading)
 			new (item) T;		// construct item before reading
-		F(Ar, *(T*) item);
+		F(Ar, *(T*)item);
 	}
 
 protected:
 	// disable array copying
 	TArray(const TArray& Other)
-	:	FArray()
+		: FArray()
 	{}
 	TArray& operator=(const TArray& Other)
 	{
@@ -2008,7 +2063,7 @@ protected:
 
 	// Helper function to reduce TLazyArray etc operator<<'s code size.
 	// Used as C-style wrapper around TArray<>::operator<<().
-	static FArchive& SerializeArray(FArchive &Ar, void *Array)
+	static FArchive& SerializeArray(FArchive& Ar, void* Array)
 	{
 		return Ar << *(TArray<T>*)Array;
 	}
@@ -2110,7 +2165,7 @@ protected:
 // More info: https://github.com/gildor2/UModel/pull/15/commits/3dc3096a6e81845a75024e060715b76bf345cd1b
 
 template<typename T, bool bCheck = true>
-FORCEINLINE void* operator new(size_t size, TArray<T> &Array)
+FORCEINLINE void* operator new(size_t size, TArray<T>& Array)
 {
 	if (bCheck)
 	{
@@ -2126,7 +2181,7 @@ FORCEINLINE void* operator new(size_t size, TArray<T> &Array)
 
 
 // Skip array of items of fixed size
-void SkipFixedArray(FArchive &Ar, int ItemSize);
+void SkipFixedArray(FArchive& Ar, int ItemSize);
 
 
 // TLazyArray implemented as simple wrapper around TArray with
@@ -2139,14 +2194,14 @@ template<typename T>
 class TLazyArray : public TArray<T>
 {
 #if DO_GUARD_MAX
-	friend FArchive& operator<<(FArchive &Ar, TLazyArray &A)
+	friend FArchive& operator<<(FArchive& Ar, TLazyArray& A)
 	{
 		guardfunc;
 		return SerializeLazyArray(Ar, A, TArray<T>::SerializeArray);
 		unguard;
 	}
 #else
-	friend FORCEINLINE FArchive& operator<<(FArchive &Ar, TLazyArray &A)
+	friend FORCEINLINE FArchive& operator<<(FArchive& Ar, TLazyArray& A)
 	{
 		return SerializeLazyArray(Ar, A, TArray<T>::SerializeArray);
 	}
@@ -2154,15 +2209,15 @@ class TLazyArray : public TArray<T>
 };
 
 
-void SkipLazyArray(FArchive &Ar);
+void SkipLazyArray(FArchive& Ar);
 #if UNREAL3
-void SkipBulkArrayData(FArchive &Ar, int Size = -1);
+void SkipBulkArrayData(FArchive& Ar, int Size = -1);
 #endif // UNREAL3
 
 template<typename T1, typename T2>
-inline void CopyArray(TArray<T1> &Dst, const TArray<T2> &Src)
+inline void CopyArray(TArray<T1>& Dst, const TArray<T2>& Src)
 {
-	if (TAreTypesEqual<T1,T2>::Value && TTypeInfo<T1>::IsPod)
+	if (TAreTypesEqual<T1, T2>::Value && TTypeInfo<T1>::IsPod)
 	{
 		// fast version when copying POD type array
 		Dst.RawCopy(Src, sizeof(T1));
@@ -2175,8 +2230,8 @@ inline void CopyArray(TArray<T1> &Dst, const TArray<T2> &Src)
 	if (Count)
 	{
 		Dst.AddUninitialized(Count);
-		T1 *pDst = (T1*)Dst.GetData();
-		T2 *pSrc = (T2*)Src.GetData();
+		T1* pDst = (T1*)Dst.GetData();
+		T2* pSrc = (T2*)Src.GetData();
 		do		// Count is > 0 here - checked above, so "do ... while" is more suitable (and more compact)
 		{
 			*pDst++ = *pSrc++;
@@ -2185,13 +2240,13 @@ inline void CopyArray(TArray<T1> &Dst, const TArray<T2> &Src)
 }
 
 template<typename T1, typename T2>
-inline void CopyArray(TArray<T1> &Dst, const TArray<T2> &Src, int32 Count, int32 FromIndex)
+inline void CopyArray(TArray<T1>& Dst, const TArray<T2>& Src, int32 Count, int32 FromIndex)
 {
-	if (TAreTypesEqual<T1,T2>::Value && TTypeInfo<T1>::IsPod)
+	if (TAreTypesEqual<T1, T2>::Value && TTypeInfo<T1>::IsPod)
 	{
 		// fast version when copying POD type array
 		TArray<T2> TempSrc;
-		CopyArrayView(TempSrc, Src.GetData()+FromIndex, Count);
+		CopyArrayView(TempSrc, Src.GetData() + FromIndex, Count);
 		Dst.RawCopy(TempSrc, sizeof(T1));
 		return;
 	}
@@ -2201,8 +2256,8 @@ inline void CopyArray(TArray<T1> &Dst, const TArray<T2> &Src, int32 Count, int32
 	if (Count)
 	{
 		Dst.AddUninitialized(Count);
-		T1 *pDst = (T1*)Dst.GetData();
-		T2 *pSrc = (T2*)(Src.GetData() + FromIndex);
+		T1* pDst = (T1*)Dst.GetData();
+		T2* pSrc = (T2*)(Src.GetData() + FromIndex);
 		do		// Count is > 0 here - checked above, so "do ... while" is more suitable (and more compact)
 		{
 			*pDst++ = *pSrc++;
@@ -2221,7 +2276,7 @@ struct TMapPair
 	TK		Key;
 	TV		Value;
 
-	friend FArchive& operator<<(FArchive &Ar, TMapPair &V)
+	friend FArchive& operator<<(FArchive& Ar, TMapPair& V)
 	{
 		return Ar << V.Key << V.Value;
 	}
@@ -2249,7 +2304,7 @@ public:
 		return const_cast<TMap*>(this)->Find(Key);
 	}
 
-	friend FORCEINLINE FArchive& operator<<(FArchive &Ar, TMap &Map)
+	friend FORCEINLINE FArchive& operator<<(FArchive& Ar, TMap& Map)
 	{
 		return Ar << (TArray<TMapPair<TK, TV> >&)Map;
 	}
@@ -2259,7 +2314,7 @@ template<typename TK, typename TV, int N>
 class TStaticMap : public TStaticArray<TMapPair<TK, TV>, N>
 {
 public:
-	friend FORCEINLINE FArchive& operator<<(FArchive &Ar, TStaticMap &Map)
+	friend FORCEINLINE FArchive& operator<<(FArchive& Ar, TStaticMap& Map)
 	{
 		return Ar << (TStaticArray<TMapPair<TK, TV>, N>&)Map;
 	}
@@ -2275,7 +2330,7 @@ struct TArrayOfArrayItem
 {
 	T	Data[N];
 
-	friend FArchive& operator<<(FArchive &Ar, TArrayOfArrayItem &S)
+	friend FArchive& operator<<(FArchive& Ar, TArrayOfArrayItem& S)
 	{
 		for (int i = 0; i < N; i++)
 			Ar << S.Data[i];
@@ -2307,7 +2362,7 @@ public:
 
 	// rvalue functions
 	FString(FString&& Other)
-	: Data(MoveTemp(Other.Data))
+		: Data(MoveTemp(Other.Data))
 	{}
 	FString& operator=(FString&& Other)
 	{
@@ -2387,15 +2442,15 @@ public:
 	}
 
 	// convert string to char* - use "*Str"
-	FORCEINLINE const char *operator*() const
+	FORCEINLINE const char* operator*() const
 	{
 		return IsEmpty() ? "" : Data.GetData();
 	}
-//	FORCEINLINE operator const char*() const
-//	{
-//		return IsEmpty() ? "" : Data.GetData();
-//	}
-	// comparison
+	//	FORCEINLINE operator const char*() const
+	//	{
+	//		return IsEmpty() ? "" : Data.GetData();
+	//	}
+		// comparison
 	friend FORCEINLINE bool operator==(const FString& A, const FString& B)
 	{
 		return strcmp(*A, *B) == 0;
@@ -2421,7 +2476,7 @@ public:
 		return strcmp(*A, B) != 0;
 	}
 
-	friend FArchive& operator<<(FArchive &Ar, FString &S);
+	friend FArchive& operator<<(FArchive& Ar, FString& S);
 
 protected:
 	TArray<char>		Data;
@@ -2459,11 +2514,11 @@ public:
 	// operators
 	FORCEINLINE FStaticString& operator=(const char* src)
 	{
-		return (FStaticString&) FString::operator=(src);
+		return (FStaticString&)FString::operator=(src);
 	}
 	FORCEINLINE FStaticString& operator=(const FString& src)
 	{
-		return (FStaticString&) FString::operator=(src);
+		return (FStaticString&)FString::operator=(src);
 	}
 
 protected:
@@ -2530,9 +2585,9 @@ struct FColor
 	FColor()
 	{}
 	FColor(byte r, byte g, byte b, byte a = 255)
-	:	R(r), G(g), B(b), A(a)
+		: R(r), G(g), B(b), A(a)
 	{}
-	friend FArchive& operator<<(FArchive &Ar, FColor &C)
+	friend FArchive& operator<<(FArchive& Ar, FColor& C)
 	{
 		if (Ar.Game < GAME_UE3)
 			return Ar << C.R << C.G << C.B << C.A;
@@ -2569,7 +2624,7 @@ class FGuid
 public:
 	uint32		A, B, C, D;
 
-	friend FArchive& operator<<(FArchive &Ar, FGuid &G)
+	friend FArchive& operator<<(FArchive& Ar, FGuid& G)
 	{
 		Ar << G.A << G.B << G.C << G.D;
 #if FURY
@@ -2600,7 +2655,7 @@ struct FCompressedChunkBlock
 	int			CompressedSize;
 	int			UncompressedSize;
 
-	friend FArchive& operator<<(FArchive &Ar, FCompressedChunkBlock &B);
+	friend FArchive& operator<<(FArchive& Ar, FCompressedChunkBlock& B);
 };
 
 struct FCompressedChunkHeader
@@ -2610,10 +2665,10 @@ struct FCompressedChunkHeader
 	FCompressedChunkBlock Sum;			// summary for the whole compressed block
 	TArray<FCompressedChunkBlock> Blocks;
 
-	friend FArchive& operator<<(FArchive &Ar, FCompressedChunkHeader &H);
+	friend FArchive& operator<<(FArchive& Ar, FCompressedChunkHeader& H);
 };
 
-void appReadCompressedChunk(FArchive &Ar, byte *Buffer, int Size, int CompressionFlags);
+void appReadCompressedChunk(FArchive& Ar, byte* Buffer, int Size, int CompressionFlags);
 
 
 /*-----------------------------------------------------------------------------
@@ -2654,23 +2709,23 @@ struct FByteBulkData //?? separate FUntypedBulkData
 	int32	ElementCount;				// number of array elements
 	int64	BulkDataOffsetInFile;		// position in file, points to BulkData; 32-bit in UE3, 64-bit in UE4
 	int32	BulkDataSizeOnDisk;			// size of bulk data on disk
-//	int		SavedBulkDataFlags;
-//	int		SavedElementCount;
-//	int		SavedBulkDataOffsetInFile;
-//	int		SavedBulkDataSizeOnDisk;
-	byte	*BulkData;					// pointer to array data
-//	int		LockStatus;
-//	FArchive *AttachedAr;
+	//	int		SavedBulkDataFlags;
+	//	int		SavedElementCount;
+	//	int		SavedBulkDataOffsetInFile;
+	//	int		SavedBulkDataSizeOnDisk;
+	byte* BulkData;					// pointer to array data
+	//	int		LockStatus;
+	//	FArchive *AttachedAr;
 
 #if UNREAL4
 	bool	bIsUE4Data;					// indicates how to treat BulkDataFlags, as these constants aren't compatible between UE3 and UE4
 #endif
 
 	FByteBulkData()
-	:	BulkData(NULL)
-	,	BulkDataOffsetInFile(0)
+		: BulkData(NULL)
+		, BulkDataOffsetInFile(0)
 #if UNREAL4
-	,	bIsUE4Data(false)
+		, bIsUE4Data(false)
 #endif
 	{}
 
@@ -2695,22 +2750,22 @@ struct FByteBulkData //?? separate FUntypedBulkData
 #if UNREAL4
 		if (bIsUE4Data)
 		{
-			return (BulkDataFlags & (BULKDATA_OptionalPayload|BULKDATA_PayloadInSeperateFile)) != 0;
+			return (BulkDataFlags & (BULKDATA_OptionalPayload | BULKDATA_PayloadInSeperateFile)) != 0;
 		}
 #endif // UNREAL4
 		return (BulkDataFlags & BULKDATA_StoreInSeparateFile) != 0;
 	}
 
 	// support functions
-	void SerializeHeader(FArchive &Ar);
-	void SerializeData(FArchive &Ar);
+	void SerializeHeader(FArchive& Ar);
+	void SerializeData(FArchive& Ar);
 	bool SerializeData(const UObject* MainObj) const;
 	// main functions
-	void Serialize(FArchive &Ar);
-	void Skip(FArchive &Ar);
+	void Serialize(FArchive& Ar);
+	void Skip(FArchive& Ar);
 
 protected:
-	void SerializeDataChunk(FArchive &Ar);
+	void SerializeDataChunk(FArchive& Ar);
 };
 
 struct FWordBulkData : public FByteBulkData
@@ -2763,7 +2818,7 @@ struct FIntBulkData : public FByteBulkData
 #define PKG_UnversionedProperties	0x00002000		// UE4.25+
 #define PKG_FilterEditorOnly		0x80000000		// UE4
 
-int appDecompress(byte *CompressedBuffer, int CompressedSize, byte *UncompressedBuffer, int UncompressedSize, int Flags);
+int appDecompress(byte* CompressedBuffer, int CompressedSize, byte* UncompressedBuffer, int UncompressedSize, int Flags);
 
 // UE4 has built-in AES encryption
 
