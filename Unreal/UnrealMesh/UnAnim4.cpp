@@ -739,12 +739,36 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	}();
 
 	// Do something with AdditivePoses
+	//animSeq->Tracks = LocalTracks;
+	animSeq->Tracks.Empty();
+	for (int i = 0; i < additivePoses[0].Bones.Num(); i++)
+	{
+		animSeq->Tracks.Add(new CAnimTrack(additivePoses.Num()));
+	}
+	int maxRefPosFrame = referencePoses.Num();
+	for (int frameIndex = 0; frameIndex < additivePoses.Num(); frameIndex++)
+	{
+		const FCompactPose& addPose = additivePoses[frameIndex];
+		//FCompactPose tester = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex];
+		FCompactPose refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex].Clone(); // .clone
 
-	animSeq->Tracks = new TArray<CAnimTrack*>();
+		switch (animSequence4->AdditiveAnimType)
+		{
+		case EAdditiveAnimationType::AAT_LocalSpaceBase:
+			FAnimationRuntime::AccumulateLocalSpaceAdditivePoseInternal(refPose, addPose, 1);
+			break;
+		case EAdditiveAnimationType::AAT_RotationOffsetMeshSpace:
+			FAnimationRuntime::AccumulateMeshSpaceRotationAdditiveToLocalPoseInternal(refPose, addPose, 1);
+			break;
+		}
 
-
-
-	return nullptr;
+		refPose.PushTransformAtFrame(animSeq->Tracks, frameIndex);
+	}
+	if (refPoseSeq != nullptr)
+	{
+		animSeq->OriginalSequence = RefAnimSet->Sequences[0]->OriginalSequence;
+	}
+	return animSeq;
 }
 bool UAnimSequence4::IsValidAdditive()
 {

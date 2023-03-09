@@ -254,6 +254,17 @@ struct CAnimTrack
 	TStaticArray<float, 1>	KeyScaleTime;
 #endif
 
+	CAnimTrack(int length)
+	{
+		KeyQuat.SetNum(length);
+		KeyPos.SetNum(length);
+		KeyScale.SetNum(length);
+	}
+	CAnimTrack()
+	{
+
+	}
+
 	// DstPos and/or DstQuat will not be changed when KeyPos and/or KeyQuat are empty.
 	void GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 &DstPos, CQuat &DstQuat) const;
 

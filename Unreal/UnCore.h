@@ -1259,12 +1259,21 @@ struct FQuat
 		Z *= Scale;
 		W *= Scale;
 	}
-	friend FArchive& operator<<(FArchive &Ar, FQuat &F)
+	friend FArchive& operator<<(FArchive& Ar, FQuat& F)
 	{
 		return Ar << F.X << F.Y << F.Z << F.W;
 	}
-
+	FQuat operator*(const FQuat& Other) const
+	{
+		FQuat Result;
+		Result.X = W * Other.X + X * Other.W + Y * Other.Z - Z * Other.Y;
+		Result.Y = W * Other.Y + Y * Other.W + Z * Other.X - X * Other.Z;
+		Result.Z = W * Other.Z + Z * Other.W + X * Other.Y - Y * Other.X;
+		Result.W = W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z;
+		return Result;
+	}
 };
+
 
 
 struct FCoords

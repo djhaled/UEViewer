@@ -3,7 +3,7 @@
 #include "UnObject.h"
 #include "Mesh/SkeletalMesh.h"
 #include "UnrealMesh/UnMesh4.h"
-class FPoseBone
+struct FPoseBone
 {
 public:
 	FTransform Transform{};
@@ -18,6 +18,16 @@ public:
 		Name = "";
 		IsValidKey = false;
 		Accumulated = false;
+	}
+	FPoseBone Clone() const
+	{
+		FPoseBone NewBone;
+		NewBone.Transform = Transform;
+		NewBone.ParentIndex = ParentIndex;
+		NewBone.Name = Name;
+		NewBone.IsValidKey = IsValidKey;
+		NewBone.Accumulated = Accumulated;
+		return NewBone;
 	}
 };
 
@@ -65,7 +75,7 @@ public:
 		}
 	}
 
-	void AddToTracks(TArray<CAnimTrack>& tracks)
+	void PushTransformAtFrame(TArray<CAnimTrack*>& tracks, int frame)
 	{
 		assert(tracks.Num() == Bones.Num());
 
@@ -79,10 +89,23 @@ public:
 			idek.Y = Transform.Rotation.Y;
 			idek.Z = Transform.Rotation.Z;
 			idek.W = Transform.Rotation.W;
-			tracks[Index].KeyQuat[AnimFrame] = idek;
-			tracks[Index].KeyPos[AnimFrame] = Transform.Translation;
-			tracks[Index].KeyScale[AnimFrame] = Transform.Scale3D;
+			tracks[Index]->KeyQuat[frame] = idek;
+			tracks[Index]->KeyPos[frame] = Transform.Translation;
+			tracks[Index]->KeyScale[frame] = Transform.Scale3D;
 		}
+	}
+	FCompactPose(const FCompactPose& other)
+	{
+		for (const FPoseBone& Bone : other.Bones)
+		{
+			Bones.Add(Bone);
+		}
+		AnimFrame = other.AnimFrame;
+		Processed = other.Processed;
+	}
+	FCompactPose Clone() const
+	{
+		return *this;
 	}
 };
 
@@ -96,4 +119,11 @@ public:
 	static TArray<FCompactPose>& LoadRestAsPoses(USkeleton* Skel);
 	static const TArray<FCompactPose>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton, const int refFrame);
 	static const TArray<FCompactPose>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton);
+	static void ConvertMeshRotationPoseToLocalSpaceV2(FCompactPose pose);
+	static void AccumulateLocalSpaceAdditivePoseInternal(FCompactPose basePose, FCompactPose additivePose, float weight);
+	static void AccumulateMeshSpaceRotationAdditiveToLocalPoseInternal(FCompactPose basePose, FCompactPose additivePose, float weight);
+	static void ConvertPoseToMeshRotation(FCompactPose localPose);
+
+
+
 };

@@ -25,7 +25,7 @@
             "name": "Win64-Debug",
             "customConfigurationVariables": {
                 "BuildOptions": "--64 --debug",
-				"ExeName": "umodel-debug_64.exe"
+				"ExeName": "umodel.exe"
 			}
         }
     ],

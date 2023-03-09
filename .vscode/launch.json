@@ -6,11 +6,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "(No arguments)",
+			"name": "BekaPato",
 			"type": "cppvsdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/${input:ExeName}",
-			"args": [],
+			"args": ["@docs/cmdline.cfg"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],
