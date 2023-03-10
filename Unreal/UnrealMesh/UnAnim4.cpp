@@ -709,8 +709,13 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	int refFramIndex = animSequence4->RefFrameIndex;
 	UAnimSequence4* refPoseSeq = animSequence4->RefPoseSeq;
 	USkeleton* refPoseSkel = (refPoseSeq != nullptr) ? refPoseSeq->Skeleton : skeleton;
+
 	CAnimSet* RefAnimSet = refPoseSkel->ConvertAnimation(refPoseSeq);
+	CAnimSequence* TestIdle = RefAnimSet->Sequences[0];
+	if (animSeq->Tracks.Num() == 0) { return nullptr; }
 	const TArray<FCompactPose*>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
+	FCompactPose* BekaTest = additivePoses[0];
+
 
 	const TArray<FCompactPose*>& referencePoses = [&]() -> const TArray<FCompactPose*>&
 	{
@@ -741,10 +746,13 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	{
 		FCompactPose* addPose = additivePoses[frameIndex];
 		FCompactPose* refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex]->Clone();
-		//const FCompactPose& addPose = additivePoses[frameIndex];
-		//FCompactPose tester = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex];
-		//FCompactPose& refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex].Clone(); // .clone
-
+		TArray<FString> addPoseString;
+		for (int i = 0; i < addPose->Bones.Num(); i++)
+		{
+			FPoseBone BkBone = addPose->Bones[i];
+			FString NameBone = BkBone.Name;
+			appPrintf("Bone Name: %s [%f, %f, %f, %f]\n", *NameBone, BkBone.Transform.Rotation.W, BkBone.Transform.Rotation.X, BkBone.Transform.Rotation.Y, BkBone.Transform.Rotation.Z);
+		}
 		switch (animSequence4->AdditiveAnimType)
 		{
 		case EAdditiveAnimationType::AAT_LocalSpaceBase:
@@ -761,6 +769,8 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	{
 		animSeq->OriginalSequence = RefAnimSet->Sequences[0]->OriginalSequence;
 	}
+	//for (int)
+	//return TestIdle;
 	return animSeq;
 }
 bool UAnimSequence4::IsValidAdditive()
@@ -1341,9 +1351,10 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 CAnimSet* USkeleton::ConvertAnimation(UAnimSequence4* anim)
 {
 	CAnimSet* animSet = this->ConvertToAnimSet();
+	//if (animSet->Sequences.Num() == 0) { return nullptr; }
 	if (!anim) { return animSet; }
-
-	animSet->Sequences.Add(anim->ConvertSequence(this));
+	CAnimSequence* Return = anim->ConvertSequence(this);
+	animSet->Sequences.Add(Return);
 
 	return animSet;
 }

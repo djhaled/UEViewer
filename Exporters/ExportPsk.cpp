@@ -659,28 +659,37 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 	KeyHdr.DataCount = keysCount;
 	KeyHdr.DataSize  = sizeof(VQuatAnimKey);
 	SAVE_CHUNK(KeyHdr, "ANIMKEYS");
+
 	for (i = 0; i < numAnims; i++)
 	{
 		guard(Sequence);
 		const CAnimSequence &S = *Anim->Sequences[i];
+		const UObject* SeqObj = S.OriginalSequence;
+		UAnimSequence4* animSequence4 = static_cast<UAnimSequence4*>(const_cast<UObject*>(SeqObj));
 		for (int t = 0; t < S.NumFrames; t++)
 		{
 			for (int b = 0; b < numBones; b++)
 			{
 				VQuatAnimKey K;
-				CVec3 BP;
-				CQuat BO;
-
-				BP.Set(0, 0, 0);			// GetBonePosition() will not alter BP and BO when animation tracks are not exists
-				BO.Set(0, 0, 0, 1);
-				S.Tracks[b]->GetBonePosition(t, S.NumFrames, false, BP, BO);
-
-				K.Position    = (FVector&) BP;
-				K.Orientation = (FQuat&)   BO;
-				K.Time        = 1;
+				FTransform boneTransform = SkelAnim->ReferenceSkeleton.RefBonePose[b];
+				//
+				K.Position = boneTransform.Translation;
+				K.Orientation = boneTransform.Rotation;
+				K.Time = 1;
+				//
+				if (animSequence4->FindTrackForBoneIndex(b) >= 0)
+				{
+					//CVec3 Idek;
+					CQuat QuatLocal;
+					CVec3 VecLocal;
+					S.Tracks[b]->GetBonePosition(t, S.NumFrames,false, VecLocal, QuatLocal);
+					K.Position.Set(VecLocal.X, VecLocal.Y, VecLocal.Z);
+					K.Orientation.Set(QuatLocal.X, QuatLocal.Y, QuatLocal.Z, QuatLocal.W);
+				}
 #if MIRROR_MESH
 				K.Orientation.Y *= -1;
-				K.Orientation.W *= -1;
+				if (b == 0) K.Orientation.W *= -1;
+				//K.Orientation.W *= -1;
 				K.Position.Y    *= -1;
 #endif
 
