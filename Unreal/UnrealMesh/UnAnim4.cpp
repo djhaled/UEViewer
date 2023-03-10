@@ -10,7 +10,7 @@
 #include "Exporters/AnimationRuntime.h"
 #include "Mesh/SkeletalMesh.h"
 #include "TypeConvert.h"
-
+#include "UnrealPackage/PackageUtils.h"
 #include "libs/acl/include/acl.h"
 
 //#define DEBUG_DECOMPRESS	1
@@ -629,6 +629,8 @@ CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 	AnimSeqC->Rate = Seq->NumFrames / Seq->SequenceLength * Seq->RateScale;
 	AnimSeqC->bAdditive = Seq->AdditiveAnimType != AAT_None;
 
+
+	// compression issue.,
 	if (Seq->BoneCodecDDCHandle.EndsWith("ACL_0")) // BEKAACL
 	{
 		byte* allocptr = (byte*)nAllocate(Seq->SerializedByteStream.Num(), 16);
@@ -701,6 +703,16 @@ CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 
 }
 
+int FindConvertedAnimFor(TArray<CAnimSequence*>& Sequences, UAnimSequence4*& Anim)
+{
+	for (int i = 0; i < Sequences.Num(); i++)
+	{
+		if (!Sequences[i]) { continue; }
+		if (Sequences[i]->OriginalSequence == Anim)
+			return i;
+	}
+	return INDEX_NONE;
+}
 CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 {
 	CAnimSequence* animSeq = this;
@@ -708,10 +720,21 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	UAnimSequence4* animSequence4 = static_cast<UAnimSequence4*>(const_cast<UObject*>(SeqObj));
 	int refFramIndex = animSequence4->RefFrameIndex;
 	UAnimSequence4* refPoseSeq = animSequence4->RefPoseSeq;
-	USkeleton* refPoseSkel = (refPoseSeq != nullptr) ? refPoseSeq->Skeleton : skeleton;
 
-	CAnimSet* RefAnimSet = refPoseSkel->ConvertAnimation(refPoseSeq);
-	CAnimSequence* TestIdle = RefAnimSet->Sequences[0];
+	USkeleton* refPoseSkel = (refPoseSeq != nullptr) ? refPoseSeq->Skeleton : skeleton;
+	CAnimSet* ConvertedAnimSet = refPoseSkel->ConvertedAnim;
+	int targetIndex = FindConvertedAnimFor(ConvertedAnimSet->Sequences, refPoseSeq);
+	CAnimSequence* CRefSequence = new CAnimSequence();
+	//
+	if (targetIndex == -1)
+	{
+		CRefSequence = refPoseSkel->ConvertAnims(refPoseSeq);
+	}
+	else
+	{
+		CRefSequence = ConvertedAnimSet->Sequences[targetIndex];
+	}
+
 	if (animSeq->Tracks.Num() == 0) { return nullptr; }
 	const TArray<FCompactPose*>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
 	FCompactPose* BekaTest = additivePoses[0];
@@ -724,9 +747,9 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 		case EAdditiveBasePoseType::ABPT_RefPose:
 			return FAnimationRuntime::LoadRestAsPoses(skeleton);
 		case EAdditiveBasePoseType::ABPT_AnimScaled:
-			return FAnimationRuntime::LoadAsPoses(RefAnimSet->Sequences[0], refPoseSkel);
+			return FAnimationRuntime::LoadAsPoses(CRefSequence, refPoseSkel);
 		case EAdditiveBasePoseType::ABPT_AnimFrame:
-			return FAnimationRuntime::LoadAsPoses(RefAnimSet->Sequences[0], refPoseSkel, refFramIndex);
+			return FAnimationRuntime::LoadAsPoses(CRefSequence, refPoseSkel, refFramIndex);
 		case EAdditiveBasePoseType::ABPT_LocalAnimFrame:
 			return FAnimationRuntime::LoadAsPoses(animSeq, skeleton, refFramIndex);
 		default:
@@ -747,12 +770,7 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 		FCompactPose* addPose = additivePoses[frameIndex];
 		FCompactPose* refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex]->Clone();
 		TArray<FString> addPoseString;
-		for (int i = 0; i < addPose->Bones.Num(); i++)
-		{
-			FPoseBone BkBone = addPose->Bones[i];
-			FString NameBone = BkBone.Name;
-			appPrintf("Bone Name: %s [%f, %f, %f, %f]\n", *NameBone, BkBone.Transform.Rotation.W, BkBone.Transform.Rotation.X, BkBone.Transform.Rotation.Y, BkBone.Transform.Rotation.Z);
-		}
+
 		switch (animSequence4->AdditiveAnimType)
 		{
 		case EAdditiveAnimationType::AAT_LocalSpaceBase:
@@ -767,10 +785,11 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	}
 	if (refPoseSeq != nullptr)
 	{
-		animSeq->OriginalSequence = RefAnimSet->Sequences[0]->OriginalSequence;
+		animSeq->OriginalSequence = refPoseSeq;
 	}
 	//for (int)
 	//return TestIdle;
+	//ConvertedAnimSet->Sequences[targetIndex] = animSeq;
 	return animSeq;
 }
 bool UAnimSequence4::IsValidAdditive()
@@ -832,6 +851,17 @@ static void AdjustSequenceBySkeleton(USkeleton* Skeleton, const TArray<FTransfor
 
 	unguard;
 }
+bool IsCAnimSetArray(CAnimSet* AnimSet, CAnimSequence* Dst)
+{
+	for (int set = 0; set < AnimSet->Sequences.Num(); set++)
+	{
+		if (Dst->Name == AnimSet->Sequences[set]->Name)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 
 #endif // BAKE_BONE_SCALES
@@ -840,11 +870,12 @@ CAnimSet* USkeleton::ConvertToAnimSet()
 	CAnimSet* Set = new CAnimSet(this);
 	return Set;
 }
-void USkeleton::ConvertAnims(UAnimSequence4* Seq)
+CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 {
 
 	guard(USkeleton::ConvertAnims);
 	CAnimSet* AnimSet = ConvertedAnim;
+	CAnimSequence* Dst = new CAnimSequence(Seq);
 	if (!AnimSet)
 	{
 		AnimSet = new CAnimSet(this);
@@ -898,7 +929,7 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 	// Check for NULL 'Seq' only after CAnimSet is created: we're doing ConvertAnims(NULL) to create an empty AnimSet
 	if (!Seq)
 	{
-		return;
+		return nullptr;
 	}
 #if DEBUG_ANIM
 	appPrintf("Processing Skeleton %s / AnimSequence %s\n", Name, Seq->Name);
@@ -968,15 +999,18 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 	}*/
 
 	// Store UAnimSequence in 'OriginalAnims' array, we just need it from time to time
-	OriginalAnims.Add(Seq);
 
 	// Create CAnimSequence
-	CAnimSequence *Dst = new CAnimSequence(Seq);
-	AnimSet->Sequences.Add(Dst);
+	//if (AnimSet->Sequences.FindItem(Dst, 0))
 	Dst->Name      = Seq->Name;
 	Dst->NumFrames = Seq->NumFrames;
 	Dst->Rate      = Seq->NumFrames / Seq->SequenceLength * Seq->RateScale;
 	Dst->bAdditive = Seq->AdditiveAnimType != AAT_None;
+	if (!IsCAnimSetArray(AnimSet, Dst))
+	{
+		AnimSet->Sequences.Add(Dst);
+		OriginalAnims.Add(Seq);
+	}
 
 	// Store information for animation retargeting.
 	// Reference: UAnimSequence::GetRetargetTransforms()
@@ -1038,6 +1072,7 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 	// bone tracks ...
 	Dst->Tracks.Empty(NumTracks);
+	//Dst->Tracks.SetNum(NumTracks);
 
 	// There could be an animation consisting of only trans with offsets == -1, what means
 	// use of RefPose. In this case there's no point adding the animation to AnimSet. We'll
@@ -1328,16 +1363,27 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 	// Now should invert all imported rotations
 	FixRotationKeys(Dst);
-	if (Seq->AdditiveAnimType != AAT_None)
-	{
-		ConvertedAnim = Seq->Skeleton->ConvertAnimation(Seq);
-	}
+	//if (Seq->AdditiveAnimType != AAT_None)
+	//{
+	//	CAnimSet* Bekera = Seq->Skeleton->ConvertAnimation(Dst);
+	//	for (int i = 0; i < Bekera->Sequences.Num(); i++)
+	//	{
+	//		CAnimSequence* var = Bekera->Sequences[i];
+	//		if (var == nullptr)
+	//		{
+	//			return ;
+	//		}
+	//		ConvertedAnim->Sequences.Add(var);
+	//	}
+	//	//ConvertedAnim = Seq->Skeleton->ConvertAnimation(Seq);
+	//}
+
 #if BAKE_BONE_SCALES
 	// And apply scales to positions, when skeleton has any
 	AdjustSequenceBySkeleton(this, RetargetTransforms ? *RetargetTransforms : ReferenceSkeleton.RefBonePose, Dst);
 
 #endif
-
+	return !Seq->IsValidAdditive() ? Dst : Dst->ConvertAdditive(this);
 	unguardf("Skel=%s Anim=%s", Name, Seq->Name);
 }
 
@@ -1348,14 +1394,13 @@ void USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 // PostSerialize() adds some serialization logic to data which were serialized as properties. These functions
 // were called in UE4.12 and earlier as "Serialize" and in 4.13 renamed to "PostSerialize".
-CAnimSet* USkeleton::ConvertAnimation(UAnimSequence4* anim)
+CAnimSet* USkeleton::ConvertAnimation(CAnimSequence* animSeq)
 {
 	CAnimSet* animSet = this->ConvertToAnimSet();
 	//if (animSet->Sequences.Num() == 0) { return nullptr; }
-	if (!anim) { return animSet; }
-	CAnimSequence* Return = anim->ConvertSequence(this);
-	animSet->Sequences.Add(Return);
-
+	if (!animSeq) { return animSet; }
+	//CAnimSequence* Return = anim->ConvertSequence(this);
+	animSet->Sequences.Add(animSeq);
 	return animSet;
 }
 
@@ -1897,7 +1942,6 @@ void UAnimSequence4::PostLoad()
 		AdjustBoneScales(Skeleton->ReferenceSkeleton, RetargetSourceAssetReferencePose);
 	}
 #endif // BAKE_BONE_SCALES
-
 	Skeleton->ConvertAnims(this);
 
 	// Release original animation data to save memory

@@ -225,8 +225,8 @@ public:
 	virtual void PostLoad();
 
 	// Convert a single UAnimSequence to internal animation format
-	void ConvertAnims(UAnimSequence4* Seq);
-	CAnimSet* ConvertAnimation(UAnimSequence4* anim);
+	CAnimSequence* ConvertAnims(UAnimSequence4* Seq);
+	CAnimSet* ConvertAnimation(CAnimSequence* animSeq);
 	CAnimSet* ConvertToAnimSet();
 };
 
