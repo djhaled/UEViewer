@@ -1487,6 +1487,15 @@ struct FTransform
 	{
 		return Ar << T.Rotation << T.Translation << T.Scale3D;
 	}
+
+	FTransform Clone() const
+	{
+		FTransform NewBone;
+		NewBone.Rotation = this->Rotation;
+		NewBone.Scale3D = this->Scale3D;
+		NewBone.Translation = this->Translation;
+		return NewBone;
+	}
 };
 
 #endif // UNREAL4

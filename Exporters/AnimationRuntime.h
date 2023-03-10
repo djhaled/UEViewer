@@ -22,13 +22,22 @@ public:
 	FPoseBone Clone() const
 	{
 		FPoseBone NewBone;
-		NewBone.Transform = Transform;
+		NewBone.Transform = Transform.Clone();
 		NewBone.ParentIndex = ParentIndex;
 		NewBone.Name = Name;
 		NewBone.IsValidKey = IsValidKey;
 		NewBone.Accumulated = Accumulated;
 		return NewBone;
 	}
+	//FPoseBone Clone() const
+	//{
+	//	FPoseBone BoneClonePose = FPoseBone(Bones.Num());
+	//	for (int i = 0; i < BoneClonePose.Bones.Num(); i++)
+	//	{
+	//		BoneClonePose.Bones[i] = Bones[i].Clone();
+	//	}
+	//	return BoneClonePose;
+	//}
 	CQuat ConvertFQuatToCquatV2(const FQuat& F)
 	{
 		CQuat C;
@@ -82,6 +91,7 @@ public:
 	}
 
 
+
 	void NormalizeRotations()
 	{
 		for (FPoseBone& bone : Bones)
@@ -94,6 +104,12 @@ public:
 	{
 		assert(tracks.Num() == Bones.Num());
 
+		if (frame == 7)
+		{
+			int bj = 3;
+		}
+
+		// NEEDS TO BE CLONED HERE MAYBE?
 		for (int32 Index = 0; Index < Bones.Num(); ++Index)
 		{
 			if (!Bones[Index].IsValidKey) continue;
@@ -118,10 +134,16 @@ public:
 		AnimFrame = other.AnimFrame;
 		Processed = other.Processed;
 	}
-	FCompactPose Clone() const
+	FCompactPose* Clone() const
 	{
-		return *this;
+		FCompactPose* ClonePose = new FCompactPose(Bones.Num());
+		for (int i = 0; i < ClonePose->Bones.Num(); i++)
+		{
+			ClonePose->Bones[i] = Bones[i].Clone();
+		}
+		return ClonePose;
 	}
+
 };
 
 
@@ -131,13 +153,13 @@ class CAnimSet;
 class FAnimationRuntime
 {
 public:
-	static TArray<FCompactPose>& LoadRestAsPoses(USkeleton* Skel);
-	static const TArray<FCompactPose>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton, const int refFrame);
-	static const TArray<FCompactPose>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton);
-	static void ConvertMeshRotationPoseToLocalSpaceV2(FCompactPose pose);
-	static void AccumulateLocalSpaceAdditivePoseInternal(FCompactPose basePose, FCompactPose additivePose, float weight);
-	static void AccumulateMeshSpaceRotationAdditiveToLocalPoseInternal(FCompactPose basePose, FCompactPose additivePose, float weight);
-	static void ConvertPoseToMeshRotation(FCompactPose localPose);
+	static TArray<FCompactPose*>& LoadRestAsPoses(USkeleton* Skel);
+	static const TArray<FCompactPose*>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton, const int refFrame);
+	static const TArray<FCompactPose*>& LoadAsPoses(const CAnimSequence* Anim, const USkeleton* Skeleton);
+	static void ConvertMeshRotationPoseToLocalSpaceV2(FCompactPose* pose);
+	static void AccumulateLocalSpaceAdditivePoseInternal(FCompactPose* basePose, FCompactPose* additivePose, float weight);
+	static void AccumulateMeshSpaceRotationAdditiveToLocalPoseInternal(FCompactPose* basePose, FCompactPose* additivePose, float weight);
+	static void ConvertPoseToMeshRotation(FCompactPose* localPose);
 
 
 

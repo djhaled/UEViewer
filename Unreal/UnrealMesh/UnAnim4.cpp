@@ -697,6 +697,7 @@ CAnimSequence* UAnimSequence4::ConvertSequence(USkeleton* skeleton)
 		nDeallocate(allocptr, Seq->SerializedByteStream.Num());
 	}
 	return !Seq->IsValidAdditive() ? AnimSeqC : AnimSeqC->ConvertAdditive(skeleton);
+	//return AnimSeqC;
 
 }
 
@@ -709,9 +710,9 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	UAnimSequence4* refPoseSeq = animSequence4->RefPoseSeq;
 	USkeleton* refPoseSkel = (refPoseSeq != nullptr) ? refPoseSeq->Skeleton : skeleton;
 	CAnimSet* RefAnimSet = refPoseSkel->ConvertAnimation(refPoseSeq);
-	const TArray<FCompactPose>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
+	const TArray<FCompactPose*>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
 
-	const TArray<FCompactPose>& referencePoses = [&]() -> const TArray<FCompactPose>&
+	const TArray<FCompactPose*>& referencePoses = [&]() -> const TArray<FCompactPose*>&
 	{
 		switch (animSequence4->RefPoseType)
 		{
@@ -731,16 +732,18 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	// Do something with AdditivePoses
 	//animSeq->Tracks = LocalTracks;
 	animSeq->Tracks.Empty();
-	for (int i = 0; i < additivePoses[0].Bones.Num(); i++)
+	for (int i = 0; i < additivePoses[0]->Bones.Num(); i++)
 	{
 		animSeq->Tracks.Add(new CAnimTrack(additivePoses.Num()));
 	}
 	int maxRefPosFrame = referencePoses.Num();
 	for (int frameIndex = 0; frameIndex < additivePoses.Num(); frameIndex++)
 	{
-		const FCompactPose& addPose = additivePoses[frameIndex];
+		FCompactPose* addPose = additivePoses[frameIndex];
+		FCompactPose* refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex]->Clone();
+		//const FCompactPose& addPose = additivePoses[frameIndex];
 		//FCompactPose tester = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex];
-		FCompactPose refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex].Clone(); // .clone
+		//FCompactPose& refPose = referencePoses[animSequence4->RefPoseType == EAdditiveBasePoseType::ABPT_AnimScaled ? frameIndex % maxRefPosFrame : refFramIndex].Clone(); // .clone
 
 		switch (animSequence4->AdditiveAnimType)
 		{
@@ -752,7 +755,7 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 			break;
 		}
 
-		refPose.PushTransformAtFrame(animSeq->Tracks, frameIndex);
+		refPose->PushTransformAtFrame(animSeq->Tracks, frameIndex);
 	}
 	if (refPoseSeq != nullptr)
 	{
