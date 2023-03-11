@@ -696,7 +696,6 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 				//
 				if (animSequence4->FindTrackForBoneIndex(b) >= 0)
 				{
-					//CVec3 Idek;
 					CQuat QuatLocal;
 					CVec3 VecLocal;
 					S.Tracks[b]->GetBonePosition(t, S.NumFrames,false, VecLocal, QuatLocal);
@@ -899,15 +898,6 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 
 
 
-//CAnimSet* ConvertAnims(USkeleton* skeleton, UAnimSequence4* anim)
-//{
-//	CAnimSet* animSet = skeleton->ConvertToAnimSet();
-//	if (!anim) { return animSet; }
-//
-//	animSet->Sequences.Add(anim->ConvertSequence(skeleton));
-//
-//	return animSet;
-//}
 
 
 void ExportPsa(const CAnimSet* Anim)
@@ -916,7 +906,6 @@ void ExportPsa(const CAnimSet* Anim)
 
 	// Determine if CAnimSet will save animations as separate psa files, or all at once
 	const UObject* OriginalAnim = GetPrimaryAnimObject(Anim);
-	//UAnimSequence4* animSeq = const_cast<UAnimSequence4*>(static_cast<const UAnimSequence4*>(OriginalAnim));
 	if (OriginalAnim == Anim->OriginalAnim || Anim->Sequences.Num() == 1)
 	{
 		// Export all animations in a single file

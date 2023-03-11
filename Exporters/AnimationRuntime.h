@@ -29,28 +29,11 @@ public:
 		NewBone.Accumulated = Accumulated;
 		return NewBone;
 	}
-	//FPoseBone Clone() const
-	//{
-	//	FPoseBone BoneClonePose = FPoseBone(Bones.Num());
-	//	for (int i = 0; i < BoneClonePose.Bones.Num(); i++)
-	//	{
-	//		BoneClonePose.Bones[i] = Bones[i].Clone();
-	//	}
-	//	return BoneClonePose;
-	//}
-	CQuat ConvertFQuatToCquatV2(const FQuat& F)
-	{
-		CQuat C;
-		C.Set(F.X, F.Y, F.Z, F.W);
-		return C;
-	}
+
 	void  AccumulateWithAdditiveScale(FTransform atom, float weight)
 	{
 		Transform.Rotation = atom.Rotation * weight * Transform.Rotation;
 		Transform.Translation += atom.Translation * weight;
-		//FVector TesVec = FVector(1,1,1);
-		//FVector NewVec = TesVec + atom.Scale3D;
-		//Transform.Scale3D *= NewVec * weight;
 		Accumulated = true;
 	}
 };
@@ -104,23 +87,14 @@ public:
 	{
 		assert(tracks.Num() == Bones.Num());
 
-		if (frame == 7)
-		{
-			int bj = 3;
-		}
-
-		// NEEDS TO BE CLONED HERE MAYBE?
 		for (int32 Index = 0; Index < Bones.Num(); ++Index)
 		{
 			if (!Bones[Index].IsValidKey) continue;
 
 			FTransform Transform = Bones[Index].Transform;
-			CQuat idek;
-			idek.X = Transform.Rotation.X;
-			idek.Y = Transform.Rotation.Y;
-			idek.Z = Transform.Rotation.Z;
-			idek.W = Transform.Rotation.W;
-			tracks[Index]->KeyQuat[frame] = idek;
+			CQuat QuatFrameRot;
+			QuatFrameRot.Set(Transform.Rotation.X, Transform.Rotation.Y, Transform.Rotation.Z, Transform.Rotation.W);
+			tracks[Index]->KeyQuat[frame] = QuatFrameRot;
 			tracks[Index]->KeyPos[frame] = Transform.Translation;
 			tracks[Index]->KeyScale[frame] = Transform.Scale3D;
 		}

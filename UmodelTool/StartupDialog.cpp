@@ -32,8 +32,6 @@ bool UIStartupDialog::Show()
 void UIStartupDialog::InitUI()
 {
 	guard(UIStartupDialog::InitUI);
-	Opt.GameOverride = GAME_Valorant;
-	Opt.GamePath = "C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Content\\Paks";
 	(*this)
 	[
 		NewControl(UILabel, "Path to game files:")

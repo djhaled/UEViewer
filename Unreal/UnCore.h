@@ -1122,6 +1122,8 @@ struct FVector
 	{
 		X = _X; Y = _Y; Z = _Z;
 	}
+	FVector() : X(0.f), Y(0.f), Z(0.f) {}
+	FVector(float InX, float InY, float InZ) : X(InX), Y(InY), Z(InZ) {}
 	operator CVec3() const
 	{
 		CVec3 tt;
@@ -1184,6 +1186,10 @@ struct FVector
 		Y *= f.Y;
 		Z *= f.Z;
 		return *this;
+	}
+	static FVector ZeroVector()
+	{
+		return FVector(0.f, 0.f, 0.f);
 	}
 };
 
@@ -1271,12 +1277,25 @@ struct FQuat
 	{
 		X = _X; Y = _Y; Z = _Z; W = _W;
 	}
+	FQuat()
+		: X(0.f), Y(0.f), Z(0.f), W(0.f)
+	{
+	}
+	FQuat(float InX, float InY, float InZ, float InW)
+		: X(InX), Y(InY), Z(InZ), W(InW)
+	{
+	}
 	//float THRESH_QUAT_NORMALIZED = 0.0001f; // You can adjust this value as needed
 	bool IsNormalized() const
 	{
 		return fabs(1.0f - SizeSquared()) < 0.0001f;
 	}
-
+	static FQuat Identity()
+	{
+		FQuat Identity;
+		Identity.Set(0.f, 0.f, 0.f, 1.f);
+		return Identity;
+	}
 	float SizeSquared() const
 	{
 		return X * X + Y * Y + Z * Z + W * W;
@@ -1318,15 +1337,6 @@ struct FQuat
 		ide.Set(q.X * s, q.Y * s, q.Z * s, q.W * s);
 		return ide;
 	}
-	//FQuat operator*(const FQuat& Other) const
-	//{
-	//	FQuat Result;
-	//	Result.X = W * Other.X + X * Other.W + Y * Other.Z - Z * Other.Y;
-	//	Result.Y = W * Other.Y + Y * Other.W + Z * Other.X - X * Other.Z;
-	//	Result.Z = W * Other.Z + Z * Other.W + X * Other.Y - Y * Other.X;
-	//	Result.W = W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z;
-	//	return Result;
-	//}
 };
 
 
@@ -1487,7 +1497,13 @@ struct FTransform
 	{
 		return Ar << T.Rotation << T.Translation << T.Scale3D;
 	}
-
+	FTransform() : Rotation(FQuat()), Translation(FVector()), Scale3D(FVector(1.f, 1.f, 1.f))
+	{
+	}
+	FTransform(const FVector& InTranslation, const FQuat& InRotation, const FVector& InScale3D)
+		: Rotation(InRotation), Translation(InTranslation), Scale3D(InScale3D)
+	{
+	}
 	FTransform Clone() const
 	{
 		FTransform NewBone;

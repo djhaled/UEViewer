@@ -226,8 +226,6 @@ public:
 
 	// Convert a single UAnimSequence to internal animation format
 	CAnimSequence* ConvertAnims(UAnimSequence4* Seq);
-	CAnimSet* ConvertAnimation(CAnimSequence* animSeq);
-	CAnimSet* ConvertToAnimSet();
 };
 
 
@@ -1081,7 +1079,6 @@ public:
 	int GetNumTracks() const;
 	int GetTrackBoneIndex(int TrackIndex) const;
 	int FindTrackForBoneIndex(int BoneIndex) const;
-	CAnimSequence* ConvertSequence(USkeleton* skeleton) ;
 	bool IsValidAdditive();
 	void TransferPerTrackData(TArray<uint8>& Dst, const TArray<uint8>& Src);
 };

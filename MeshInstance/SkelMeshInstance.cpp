@@ -573,10 +573,6 @@ void CSkelMeshInstance::UpdateSkeleton()
 				case EBoneTranslationRetargetingMode::AnimationScaled:
 					{
 						// Like ::OrientAndScale, but without rotation
-					CVec3 tt;
-					tt.X = Animation->BonePositions[AnimBoneIndex].Translation.X;
-					tt.Y = Animation->BonePositions[AnimBoneIndex].Translation.Y;
-					tt.Y = Animation->BonePositions[AnimBoneIndex].Translation.Z;
 						CVec3 SourceTrans = AnimSeq1->RetargetBasePose.Num()
 							? AnimSeq1->RetargetBasePose[AnimBoneIndex].Position
 							: Animation->BonePositions[AnimBoneIndex].Translation;
