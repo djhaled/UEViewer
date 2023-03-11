@@ -12,7 +12,6 @@ UmodelTool/Version.h
 Tools/**/makefile-*
 
 # Other ignores
-Docs/cmdline.cfg
 Docs/fortnite.txt
 Tools/MaxActorXImport/ActorXImporter.ini
 Tools/UT2down/
@@ -24,11 +23,7 @@ Screenshots/
 notify.log
 umodel.cfg
 
-# Visual Studio files
-**/.vs/*
-!.vs/CppProperties.json
-!.vs/launch.vs.json
-!.vs/tasks.vs.json
+
 
 # Executable files and pdb
 umodel[-_]*.exe
