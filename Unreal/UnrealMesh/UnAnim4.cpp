@@ -1362,7 +1362,7 @@ CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 	}
 
 	// Now should invert all imported rotations
-	FixRotationKeys(Dst);
+	// FixRotationKeys(Dst);
 	//if (Seq->AdditiveAnimType != AAT_None)
 	//{
 	//	CAnimSet* Bekera = Seq->Skeleton->ConvertAnimation(Dst);

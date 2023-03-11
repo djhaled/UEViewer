@@ -46,3 +46,11 @@ Tools/PackageExtract/oo2core*.dll
 
 # PackageExtract - ignore all extracted stuff
 Tools/PackageExtract/**/
+*.vsidx
+*.lock
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+*.ipch
+.vs/UEViewer/v17/.wsuo
