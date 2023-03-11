@@ -871,7 +871,6 @@ void CSkelMeshInstance::UpdateAnimation(float TimeDelta)
 /*-----------------------------------------------------------------------------
 	Animation setup
 -----------------------------------------------------------------------------*/
-
 void CSkelMeshInstance::PlayAnimInternal(const char *AnimName, float Rate, float TweenTime, int Channel, bool Looped)
 {
 	guard(CSkelMeshInstance::PlayAnimInternal);
@@ -894,7 +893,6 @@ void CSkelMeshInstance::PlayAnimInternal(const char *AnimName, float Rate, float
 		Chn.SecondaryBlend = 0;
 		return;
 	}
-
 	Chn.Rate = Rate;
 	Chn.bLooped = Looped;
 

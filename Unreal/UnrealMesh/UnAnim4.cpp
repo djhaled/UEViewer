@@ -707,8 +707,12 @@ int FindConvertedAnimFor(TArray<CAnimSequence*>& Sequences, UAnimSequence4*& Ani
 {
 	for (int i = 0; i < Sequences.Num(); i++)
 	{
+		if (i == 2175)
+		{
+			int fe = 3;
+		}
 		if (!Sequences[i]) { continue; }
-		if (Sequences[i]->OriginalSequence == Anim)
+		if (Sequences[i]->Name.Str == Anim->Name)
 			return i;
 	}
 	return INDEX_NONE;
@@ -1362,7 +1366,7 @@ CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 	}
 
 	// Now should invert all imported rotations
-	// FixRotationKeys(Dst);
+	FixRotationKeys(Dst);
 	//if (Seq->AdditiveAnimType != AAT_None)
 	//{
 	//	CAnimSet* Bekera = Seq->Skeleton->ConvertAnimation(Dst);

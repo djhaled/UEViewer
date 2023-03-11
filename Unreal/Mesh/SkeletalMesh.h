@@ -318,6 +318,7 @@ public:
 	}
 	CAnimSequence* ConvertAdditive(USkeleton* skeleton);
 
+	void FixRotationKeys();
 };
 
 

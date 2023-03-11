@@ -575,10 +575,25 @@ const UObject* GetPrimaryAnimObject(const CAnimSet* Anim)
 	return Anim->OriginalAnim;
 	unguard;
 }
+void  CAnimSequence::FixRotationKeys()
+{
+	CAnimSequence* Anim = this;
+
+	for (int TrackIndex = 0; TrackIndex < Anim->Tracks.Num(); TrackIndex++)
+	{
+		if (TrackIndex == 0) continue;	// don't fix root track
+		CAnimTrack* Track = Anim->Tracks[TrackIndex];
+		for (CQuat& Key : Track->KeyQuat)
+		{
+			Key.Conjugate();
+		}
+	}
+}
 
 static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 {
 	guard(DoExportPsa);
+
 
 	FArchive* Ar0 = CreateExportArchive(OriginalAnim, EFileArchiveOptions::Default, "%s.psa", OriginalAnim->Name);
 	if (!Ar0) return;
@@ -633,7 +648,9 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 	{
 		AnimInfoBinary A;
 		memset(&A, 0, sizeof(A));
-		const CAnimSequence &S = *Anim->Sequences[i];
+		CAnimSequence* SequenceAnim = Anim->Sequences[i];
+		SequenceAnim->FixRotationKeys();
+		const CAnimSequence &S = *SequenceAnim;
 		strcpy(A.Name,  *S.Name);
 		strcpy(A.Group, /*??S.Groups.Num() ? *S.Groups[0] :*/ "None");
 		A.TotalBones          = numBones;
