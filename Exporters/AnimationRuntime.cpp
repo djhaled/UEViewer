@@ -18,14 +18,17 @@ const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence*
 			CAnimTrack* track = seq->Tracks[boneIndex];
 			CVec3 bonePositionRef;
 			CQuat boneOrientationRef;
+			bonePositionRef.Set(0, 0, 0);
+			boneOrientationRef.Set(0, 0, 0, 1);
 			track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef);
 			FVector BonePosUse = FVector(bonePositionRef.X, bonePositionRef.Y, bonePositionRef.Z);
 			FQuat BoneRotUse = FQuat(boneOrientationRef.X, boneOrientationRef.Y, boneOrientationRef.Z, boneOrientationRef.W);
 			// Create PoseBone
+			FTransform BoneTransform = FTransform(BonePosUse, BoneRotUse, FVector());
 			FPoseBone& poseBone = CurrentPose->Bones[boneIndex];
 			poseBone.Name = boneInfo.Name;
 			poseBone.ParentIndex = boneInfo.ParentIndex;
-			poseBone.Transform = FTransform(BonePosUse, BoneRotUse, FVector());
+			poseBone.Transform = BoneTransform;
 			poseBone.IsValidKey = frameIndex <= (track->KeyPos.Num() < track->KeyQuat.Num() ? track->KeyPos.Num() : track->KeyQuat.Num());
 		}
 	}
@@ -75,6 +78,7 @@ void FAnimationRuntime::ConvertPoseToMeshRotation(FCompactPose* localPose)
 const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence* seq, const USkeleton* Skeleton, const int refFrame)
 {
 	TArray<FCompactPose*>* Poses = new TArray<FCompactPose*>();
+	UAnimSequence4* animSequence4 = static_cast<UAnimSequence4*>(const_cast<UObject*>(seq->OriginalSequence));
 	for (int frameIndex = 0; frameIndex < 1; frameIndex++)
 	{
 		FCompactPose* CurrentPose = new FCompactPose(Skeleton->BoneTree.Num());
@@ -85,19 +89,24 @@ const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence*
 			FMeshBoneInfo boneInfo = Skeleton->ReferenceSkeleton.RefBoneInfo[boneIndex];
 			FTransform originalTransform = Skeleton->ReferenceSkeleton.RefBonePose[boneIndex];
 			CAnimTrack* Track = seq->Tracks[boneIndex];
-
 			CVec3 bonePositionRef;
 			CQuat boneOrientationRef;
+			bonePositionRef.Set(0, 0, 0);
+			boneOrientationRef.Set(0, 0, 0, 1);
 			Track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef);
 
 			FVector BonePosUse = FVector(bonePositionRef.X, bonePositionRef.Y, bonePositionRef.Z);
 			FQuat BoneRotUse = FQuat(boneOrientationRef.X, boneOrientationRef.Y, boneOrientationRef.Z, boneOrientationRef.W);
-
+			FTransform BoneTransform = FTransform(BonePosUse, BoneRotUse, FVector());
+			if (animSequence4->FindTrackForBoneIndex(boneIndex) == -1)
+			{
+				BoneTransform = originalTransform;
+			}
 			// Creating PoseBone
 			FPoseBone PoseBone;
 			PoseBone.Name = boneInfo.Name;
 			PoseBone.ParentIndex = boneInfo.ParentIndex;
-			PoseBone.Transform = FTransform(BonePosUse,BoneRotUse,FVector());
+			PoseBone.Transform = BoneTransform;
 			PoseBone.IsValidKey = true;
 			(*Poses)[frameIndex]->Bones[boneIndex] = PoseBone;
 		}
