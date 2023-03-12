@@ -91,7 +91,7 @@ function GetBuildNumber()
 				git=`type -p git`
 			fi
 		fi
-		[ "$git" ] && revision=`git rev-list --count HEAD`"-floxay"
+		[ "$git" ] && revision=`git rev-list --count HEAD`"-djhaled"
 		DebugPrint "Git revision: $revision"
 	fi
 

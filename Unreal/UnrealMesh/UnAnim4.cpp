@@ -1048,10 +1048,6 @@ CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 			}
 			int Offset = TrackIndex * header.NumSamples;
 
-			if (TrackIndex == 5)
-			{
-				int dj = 23;
-			}
 			CopyArray(A->KeyPos, CVT(PosKeys), (int32)header.NumSamples, Offset);
 			CopyArray(A->KeyQuat, CVT(RotKeys), (int32)header.NumSamples, Offset);
 #if SUPPORT_SCALE_KEYS
