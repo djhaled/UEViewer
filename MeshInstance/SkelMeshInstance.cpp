@@ -513,8 +513,16 @@ void CSkelMeshInstance::UpdateSkeleton()
 				// get bone position from track
 				if (!AnimSeq2 || Chn->SecondaryBlend != 1.0f)
 				{
-					AnimSeq1->Tracks[AnimBoneIndex]->GetBonePosition(
-						Chn->CurrentFrame, AnimSeq1->NumFrames, Chn->bLooped, NewBonePosition, NewBoneRotation);
+					UAnimSequence4* animSequence4 = static_cast<UAnimSequence4*>(const_cast<UObject*>(AnimSeq1->OriginalSequence));
+					if (animSequence4->FindTrackForBoneIndex(AnimBoneIndex) < 0)
+					{
+						//FTransform boneTransform = SkelAnim->ReferenceSkeleton.RefBonePose[b];
+					}
+					else
+					{
+						AnimSeq1->Tracks[AnimBoneIndex]->GetBonePosition(
+							Chn->CurrentFrame, AnimSeq1->NumFrames, Chn->bLooped, NewBonePosition, NewBoneRotation);
+					}
 #if SHOW_ANIM
 					BoneDebug.bIsAnimated = true;
 					BoneDebug.AnimPosition = NewBonePosition;
