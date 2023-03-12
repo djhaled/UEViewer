@@ -300,6 +300,7 @@ public:
 	bool					bAdditive;				// used just for on-screen information
 	const UObject*			OriginalSequence;
 	TArray<CSkeletonBonePosition> RetargetBasePose;
+	bool isFixed;
 #if ANIM_DEBUG_INFO
 	FString					DebugInfo;
 #endif

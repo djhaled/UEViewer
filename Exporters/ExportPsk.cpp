@@ -649,7 +649,7 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 		AnimInfoBinary A;
 		memset(&A, 0, sizeof(A));
 		CAnimSequence* SequenceAnim = Anim->Sequences[i];
-		SequenceAnim->FixRotationKeys();
+		//SequenceAnim->FixRotationKeys();
 		const CAnimSequence &S = *SequenceAnim;
 		strcpy(A.Name,  *S.Name);
 		strcpy(A.Group, /*??S.Groups.Num() ? *S.Groups[0] :*/ "None");

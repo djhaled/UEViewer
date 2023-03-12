@@ -871,6 +871,18 @@ void CSkelMeshInstance::UpdateAnimation(float TimeDelta)
 	UpdateSkeleton();
 }
 
+static void FixRotationKeys(const CAnimSequence* Anim)
+{
+	for (int TrackIndex = 0; TrackIndex < Anim->Tracks.Num(); TrackIndex++)
+	{
+		if (TrackIndex == 0) continue;	// don't fix root track
+		CAnimTrack* Track = Anim->Tracks[TrackIndex];
+		for (CQuat& Key : Track->KeyQuat)
+		{
+			Key.Conjugate();
+		}
+	}
+}
 
 /*-----------------------------------------------------------------------------
 	Animation setup
@@ -910,7 +922,11 @@ void CSkelMeshInstance::PlayAnimInternal(const char *AnimName, float Rate, float
 		// animation not changed, just set some flags (above)
 		return;
 	}
-
+	if (AddedRotationArr.FindItem(NewAnim->Name) < 0 )
+	{
+		FixRotationKeys(NewAnim);
+		AddedRotationArr.Add(NewAnim->Name);
+	}
 	Chn.Anim1          = NewAnim;
 	Chn.Anim2          = NULL;
 	Chn.CurrentFrame   = Chn.bReverse && !Chn.bLooped ? max(NewAnim->NumFrames - 1, 0) : 0;

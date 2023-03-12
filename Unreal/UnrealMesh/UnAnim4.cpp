@@ -649,6 +649,8 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 	// Otherwise, use the converted sequence from the animation set
 	CAnimSequence* CRefSequence = (targetIndex == -1) ? refPoseSkel->ConvertAnims(refPoseSeq) : ConvertedAnimSet->Sequences[targetIndex];
 
+
+
 	// Load the additive and reference poses
 	if (animSeq->Tracks.Num() == 0) { return nullptr; }
 	const TArray<FCompactPose*>& additivePoses = FAnimationRuntime::LoadAsPoses(animSeq, skeleton);
@@ -696,7 +698,7 @@ CAnimSequence* CAnimSequence::ConvertAdditive(USkeleton* skeleton)
 		refPose->PushTransformAtFrame(animSeq->Tracks, frameIndex);
 	}
 
-
+	//animSeq->FixRotationKeys();
 	// Set the original sequence to the reference sequence, if one exists
 	animSeq->OriginalSequence = refPoseSeq;
 
@@ -1024,6 +1026,8 @@ CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 
 		nReadACLData(allocptr, PosKeys.GetData(), RotKeys.GetData(), ScaleKeys.GetData());
 
+
+
 #if !SUPPORT_SCALE_KEYS
 		ScaleKeys.Empty();
 #endif
@@ -1044,6 +1048,10 @@ CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 			}
 			int Offset = TrackIndex * header.NumSamples;
 
+			if (TrackIndex == 5)
+			{
+				int dj = 23;
+			}
 			CopyArray(A->KeyPos, CVT(PosKeys), (int32)header.NumSamples, Offset);
 			CopyArray(A->KeyQuat, CVT(RotKeys), (int32)header.NumSamples, Offset);
 #if SUPPORT_SCALE_KEYS
@@ -1268,12 +1276,15 @@ CAnimSequence* USkeleton::ConvertAnims(UAnimSequence4* Seq)
 #endif // DEBUG_DECOMPRESS
 	}
 
-	// Now should invert all imported rotations
-	FixRotationKeys(Dst);
 
 #if BAKE_BONE_SCALES
 	// And apply scales to positions, when skeleton has any
 	AdjustSequenceBySkeleton(this, RetargetTransforms ? *RetargetTransforms : ReferenceSkeleton.RefBonePose, Dst);
+	//if (!Dst->bAdditive)
+	//{
+		//FixRotationKeys(Dst);
+	//}
+	//FixRotationKeys(Dst);
 
 #endif
 	return !Seq->IsValidAdditive() ? Dst : Dst->ConvertAdditive(this);

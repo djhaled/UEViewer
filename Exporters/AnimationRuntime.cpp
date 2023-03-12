@@ -93,8 +93,11 @@ const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence*
 			CQuat boneOrientationRef;
 			bonePositionRef.Set(0, 0, 0);
 			boneOrientationRef.Set(0, 0, 0, 1);
+			if (boneIndex == 5)
+			{
+				int ds = 3;
+			}
 			Track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef);
-
 			FVector BonePosUse = FVector(bonePositionRef.X, bonePositionRef.Y, bonePositionRef.Z);
 			FQuat BoneRotUse = FQuat(boneOrientationRef.X, boneOrientationRef.Y, boneOrientationRef.Z, boneOrientationRef.W);
 			FTransform BoneTransform = FTransform(BonePosUse, BoneRotUse, FVector());

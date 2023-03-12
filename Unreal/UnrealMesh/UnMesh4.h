@@ -221,6 +221,8 @@ public:
 	TArray<UAnimSequence4*>	OriginalAnims;
 	CAnimSet*				ConvertedAnim;
 
+	//
+	CAnimSet* EditorAnim;
 	virtual void Serialize(FArchive &Ar);
 	virtual void PostLoad();
 

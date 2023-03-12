@@ -264,6 +264,7 @@ protected:
 	}
 	void SkinMeshVerts();
 	int FindBone(const char *BoneName) const;
+	TArray<FName> AddedRotationArr;
 	const CAnimSequence *FindAnim(const char *AnimName) const;
 	void PlayAnimInternal(const char *AnimName, float Rate, float TweenTime, int Channel, bool Looped);
 	void UpdateSkeleton();

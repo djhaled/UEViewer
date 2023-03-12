@@ -910,6 +910,7 @@ void CSkelMeshViewer::AttachAnimSet()
 			{
 				// found desired animation set
 				SetAnim(NewAnim);
+				//d
 				AnimIndex = -1;
 				appPrintf("Bound %s'%s' to %s'%s'\n", Object->GetClassName(), Object->Name, Obj->GetClassName(), Obj->Name);
 				break;
