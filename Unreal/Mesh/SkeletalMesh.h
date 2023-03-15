@@ -266,7 +266,7 @@ struct CAnimTrack
 	}
 
 	// DstPos and/or DstQuat will not be changed when KeyPos and/or KeyQuat are empty.
-	void GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 &DstPos, CQuat &DstQuat) const;
+	void GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3& DstPos, CQuat& DstQuat, CVec3& DstScale) const;
 
 	inline bool HasKeys() const
 	{

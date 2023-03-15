@@ -1,4 +1,3 @@
-
 #include "Core.h"
 #include "UnCore.h"
 #include "AnimationRuntime.h"
@@ -9,7 +8,7 @@ const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence*
 	TArray<FCompactPose*>* poses = new TArray<FCompactPose*>();
 	for (int frameIndex = 0; frameIndex < seq->NumFrames; frameIndex++)
 	{
-		FCompactPose * CurrentPose = new FCompactPose(Skeleton->BoneTree.Num());
+		FCompactPose* CurrentPose = new FCompactPose(Skeleton->BoneTree.Num());
 		poses->Add(CurrentPose);
 		CurrentPose->Bones.SetNum(Skeleton->BoneTree.Num());
 		for (int boneIndex = 0; boneIndex < CurrentPose->Bones.Num(); boneIndex++)
@@ -18,9 +17,11 @@ const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence*
 			CAnimTrack* track = seq->Tracks[boneIndex];
 			CVec3 bonePositionRef;
 			CQuat boneOrientationRef;
+			CVec3 boneScaleRef;
 			bonePositionRef.Set(0, 0, 0);
 			boneOrientationRef.Set(0, 0, 0, 1);
-			track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef);
+			boneScaleRef.Set(1, 1, 1);
+			track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef, boneScaleRef);
 			FVector BonePosUse = FVector(bonePositionRef.X, bonePositionRef.Y, bonePositionRef.Z);
 			FQuat BoneRotUse = FQuat(boneOrientationRef.X, boneOrientationRef.Y, boneOrientationRef.Z, boneOrientationRef.W);
 			// Create PoseBone
@@ -91,12 +92,15 @@ const TArray<FCompactPose*>& FAnimationRuntime::LoadAsPoses(const CAnimSequence*
 			CAnimTrack* Track = seq->Tracks[boneIndex];
 			CVec3 bonePositionRef;
 			CQuat boneOrientationRef;
+			CVec3 boneScaleRef;
 			bonePositionRef.Set(0, 0, 0);
 			boneOrientationRef.Set(0, 0, 0, 1);
-			Track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef);
+			boneScaleRef.Set(1, 1, 1);
+			Track->GetBonePosition(frameIndex, seq->NumFrames, false, bonePositionRef, boneOrientationRef, boneScaleRef);
 			FVector BonePosUse = FVector(bonePositionRef.X, bonePositionRef.Y, bonePositionRef.Z);
 			FQuat BoneRotUse = FQuat(boneOrientationRef.X, boneOrientationRef.Y, boneOrientationRef.Z, boneOrientationRef.W);
-			FTransform BoneTransform = FTransform(BonePosUse, BoneRotUse, FVector());
+			FVector BoneScaleUse = FVector(boneScaleRef.X, boneScaleRef.Y, boneScaleRef.Z);
+			FTransform BoneTransform = FTransform(BonePosUse, BoneRotUse, BoneScaleUse);
 			// Creating PoseBone
 			FPoseBone PoseBone;
 			PoseBone.Name = boneInfo.Name;
@@ -133,6 +137,5 @@ TArray<FCompactPose*>& FAnimationRuntime::LoadRestAsPoses(USkeleton* Skel)
 	}
 	return *Poses;
 }
-
 
 

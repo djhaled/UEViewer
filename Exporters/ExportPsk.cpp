@@ -413,7 +413,7 @@ static void ExportSkeletalMeshLod(const CSkeletalMesh &Mesh, const CSkelMeshLod 
 
 #if MIRROR_MESH
 		B.BonePos.Orientation.Y *= -1;
-		B.BonePos.Orientation.W *= -1;
+		//B.BonePos.Orientation.W *= -1;
 		B.BonePos.Position.Y    *= -1;
 #endif
 
@@ -698,13 +698,14 @@ static void DoExportPsa(const CAnimSet* Anim, const UObject* OriginalAnim)
 				{
 					CQuat QuatLocal;
 					CVec3 VecLocal;
-					S.Tracks[b]->GetBonePosition(t, S.NumFrames,false, VecLocal, QuatLocal);
+					CVec3 ScaleLocal;
+					S.Tracks[b]->GetBonePosition(t, S.NumFrames,false, VecLocal, QuatLocal, ScaleLocal);
 					K.Position.Set(VecLocal.X, VecLocal.Y, VecLocal.Z);
 					K.Orientation.Set(QuatLocal.X, QuatLocal.Y, QuatLocal.Z, QuatLocal.W);
 				}
 #if MIRROR_MESH
 				K.Orientation.Y *= -1;
-				if (b == 0) K.Orientation.W *= -1;
+				//if (b == 0) K.Orientation.W *= -1;
 				//K.Orientation.W *= -1;
 				K.Position.Y    *= -1;
 #endif

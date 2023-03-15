@@ -495,7 +495,7 @@ void CSkelMeshInstance::UpdateSkeleton()
 			const CSkelMeshBone &Bone = pMesh->RefSkeleton[i];
 			CVec3 NewBonePosition = Bone.Position;				// default position - from mesh bind pose
 			CQuat NewBoneRotation = Bone.Orientation;			// ...
-
+			CVec3 NewBoneScale;
 			int AnimBoneIndex = data->AnimBoneIndex;
 
 #if SHOW_ANIM
@@ -521,7 +521,7 @@ void CSkelMeshInstance::UpdateSkeleton()
 					else
 					{
 						AnimSeq1->Tracks[AnimBoneIndex]->GetBonePosition(
-							Chn->CurrentFrame, AnimSeq1->NumFrames, Chn->bLooped, NewBonePosition, NewBoneRotation);
+							Chn->CurrentFrame, AnimSeq1->NumFrames, Chn->bLooped, NewBonePosition, NewBoneRotation, NewBoneScale);
 					}
 #if SHOW_ANIM
 					BoneDebug.bIsAnimated = true;
@@ -538,8 +538,9 @@ void CSkelMeshInstance::UpdateSkeleton()
 				{
 					CVec3 AnimBonePositionBlend = Bone.Position;	// default position - from bind pose
 					CQuat AnimBoneRotationBlend = Bone.Orientation; // ...
+					CVec3 AnimBoneScaleBlend;
 					AnimSeq2->Tracks[AnimBoneIndex]->GetBonePosition(
-						Frame2, AnimSeq2->NumFrames, Chn->bLooped, AnimBonePositionBlend, AnimBoneRotationBlend);
+						Frame2, AnimSeq2->NumFrames, Chn->bLooped, AnimBonePositionBlend, AnimBoneRotationBlend, AnimBoneScaleBlend);
 					if (Chn->SecondaryBlend == 1.0f)
 					{
 						// Fully override the animation

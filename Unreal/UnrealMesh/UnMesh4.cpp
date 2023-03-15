@@ -2156,8 +2156,8 @@ void USkeletalMesh4::ConvertMesh()
 		Dst->Scale       = CVT(T.Scale3D);
 #endif
 		// fix skeleton; all bones but 0
-		if (i >= 1)
-			Dst->Orientation.Conjugate();
+		//if (i >= 1)
+			//Dst->Orientation.Conjugate();
 	}
 	unguard; // ProcessSkeleton
 

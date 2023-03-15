@@ -364,7 +364,8 @@ void ExportMd5Anim(const CAnimSet *Anim)
 			{
 				CVec3 BP;
 				CQuat BO;
-				S.Tracks[b]->GetBonePosition(t, S.NumFrames, false, BP, BO);
+				CVec3 BS;
+				S.Tracks[b]->GetBonePosition(t, S.NumFrames, false, BP, BO, BS);
 				if (!b) BO.Conjugate();			// root bone
 #if MIRROR_MESH
 				BO.Y  *= -1;

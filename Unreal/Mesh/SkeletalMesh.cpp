@@ -106,7 +106,7 @@ void CSkeletalMesh::SortBones()
 		CSkelMeshBone *Bone = new (NewSkeleton) CSkelMeshBone;
 		*Bone = RefSkeleton[RemapBack[i]];
 		int oldParent = Bone->ParentIndex;
-		Bone->ParentIndex = (oldParent > 0) ? Remap[oldParent] : 0;
+		Bone->ParentIndex = oldParent;
 	}
 	CopyArray(RefSkeleton, NewSkeleton);
 
@@ -353,7 +353,7 @@ static void GetKeyParams(const TArray<float> &KeyTime, float Frame, float NumFra
 
 
 // not 'static', because used in ExportPsa()
-void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 &DstPos, CQuat &DstQuat) const
+void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 &DstPos, CQuat &DstQuat,CVec3 &DstScale) const
 {
 	guard(CAnimTrack::GetBonePosition);
 
@@ -365,15 +365,14 @@ void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 
 		return;
 	}
 
-	// data for lerping
-	int posX, rotX;			// index of previous frame
-	int posY, rotY;			// index of next frame
-	float posF, rotF;		// fraction between X and Y for lerping
+	int posX, rotX, scaX;			// index of previous frame
+	int posY, rotY, scaY;			// index of next frame
+	float posF, rotF, scaF;		// fraction between X and Y for lerping
 
 	int NumTimeKeys = KeyTime.Num();
 	int NumPosKeys  = KeyPos.Num();
 	int NumRotKeys  = KeyQuat.Num();
-
+	int NumScaKeys = KeyScale.Num();
 	if (NumTimeKeys)
 	{
 		// here: KeyPos and KeyQuat sizes either equals to 1 or equals to KeyTime size
@@ -381,9 +380,9 @@ void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 
 		assert(NumRotKeys == 1 || NumRotKeys == NumTimeKeys);
 
 		GetKeyParams(KeyTime, Frame, NumFrames, Loop, posX, posY, posF);
-		rotX = posX;
-		rotY = posY;
-		rotF = posF;
+		rotX = posX = scaX;
+		rotY = posY = scaY;
+		rotF = posF = scaF;
 
 		if (NumPosKeys <= 1)
 		{
@@ -394,6 +393,11 @@ void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 
 		{
 			rotX = rotY = 0;
 			rotF = 0;
+		}
+		if (NumScaKeys <= 1)
+		{
+			scaX = scaY = 0;
+			scaF = 0;
 		}
 	}
 	else
@@ -453,6 +457,7 @@ void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 
 			rotX = rotY = 0;
 			rotF = 0;
 		}
+		GetKeyParams(KeyScaleTime, Frame, NumFrames, Loop, scaX, scaY, scaF);
 	}
 
 	// get position
@@ -465,6 +470,11 @@ void CAnimTrack::GetBonePosition(float Frame, float NumFrames, bool Loop, CVec3 
 		Slerp(KeyQuat[rotX], KeyQuat[rotY], rotF, DstQuat);
 	else if (NumRotKeys)		// do not change DstQuat when no keys
 		DstQuat = KeyQuat[rotX];
+	// get scale
+	if (scaF > 0)
+		Lerp(KeyScale[scaX], KeyScale[scaY], scaF, DstScale);
+	else if (NumScaKeys)		// do not change DstScale when no keys
+		DstScale = KeyScale[rotX];
 
 	unguard;
 }

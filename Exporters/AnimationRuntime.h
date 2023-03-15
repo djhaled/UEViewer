@@ -32,8 +32,11 @@ public:
 
 	void  AccumulateWithAdditiveScale(FTransform atom, float weight)
 	{
+		FVector OneVec = FVector(1, 1, 1);
 		Transform.Rotation = atom.Rotation * weight * Transform.Rotation;
 		Transform.Translation += atom.Translation * weight;
+		OneVec.Add(atom.Scale3D);
+		Transform.Scale3D *= OneVec * weight;
 		Accumulated = true;
 	}
 };
@@ -44,7 +47,7 @@ public:
 	TArray<FPoseBone> Bones;
 	int AnimFrame;
 	bool Processed;
-	
+
 	FCompactPose(const FReferenceSkeleton& refSkel)
 	{
 		Bones.SetNum(refSkel.RefBoneInfo.Num());
